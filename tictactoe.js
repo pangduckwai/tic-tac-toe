@@ -106,7 +106,7 @@ function newgame() {
 		game.wins[i] = 0;
 	}
 
-	game.cells = new Array(n);
+	game.cells = new Array(n); // Delay the row and cell initialization to later, since there will be a loop later to build cell anyway
 
 	// Build the game board
 	let board = document.getElementById('board');
@@ -114,14 +114,14 @@ function newgame() {
 	let r = -1;
 	let c;
 	for (let i = 0; i < n * n; i ++) {
-		if ((i % n) === 0) {
+		if ((i % n) === 0) { // Note the modular operation i % n
 			r ++;
 			c = 0;
-			game.cells[r] = new Array(n);
+			game.cells[r] = new Array(n); // Delay the row initialization to here
 		}
 
 		// Initialize the cell's corresponding value in the Game Status object
-		game.cells[r][c] = 0;
+		game.cells[r][c] = 0; // Delay the cell initialization to here
 		const row = r;
 		const col = c;
 		const eid = `c${row}-${col}`;
