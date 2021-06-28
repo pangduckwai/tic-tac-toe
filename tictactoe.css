@@ -1,0 +1,99 @@
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+body {
+	font-family: "Roboto",Arial,sans-serif;
+	font-weight: 300;
+	font-weight: normal;
+	font-size: 12pt;
+}
+a:active, a:link, a:visited {
+	text-decoration: none;
+	color: skyblue;
+}
+
+#header {
+	position: relative;
+	margin: 21px 14px 0;
+}
+#header img {
+	float: left;
+	height: 82px;
+}
+#title {
+	float: left;
+	color: #6a91aa;
+	margin-left: 7px;
+}
+
+#content {
+  clear: both;
+  padding-top: 7px;
+  padding-left: 14px;
+	margin-bottom: 35px;
+}
+#content > div {
+	margin-top: 21px;
+}
+#content h1 {
+	color: lightblue;
+	font-size: 1.7em;
+	font-variant: small-caps;
+	line-height: 1.3;
+	margin: 28px 0 14px 0;
+	margin: 0 0 14px 0;
+}
+#content h1 img {
+	height: 64px;
+	vertical-align: middle;
+	margin-right: 14px;
+}
+#content h3 {
+	color: lightgray;
+	font-size: 1.4em;
+	line-height: 1.3;
+	margin: 21px 0 0 7px;
+}
+#content h3 img {
+	height: 64px;
+	vertical-align: middle;
+}
+#content p, ol {
+	color: lightgray;
+	font-size: 1.2em;
+	line-height: 1.3;
+	margin: 7px 0 7px 14px;
+}
+#content li {
+	margin: 7px 0 7px 21px;
+}
+#content p img {
+	width: 100%;
+	margin-top: 7px;
+}
+
+#footer div {
+	float: left;
+  padding-left: 14px;
+	text-align: center;
+}
+#footer p {
+	font-size: 0.9em;
+	padding-top: 3px;
+	margin-left: 0;
+	margin-right: 14px;
+}
+#footer img {
+	margin-right: 14px;
+}
+
+.cell {
+	display: flex;
+	border: 1px solid;
+	justify-content: center;
+	align-items: center;
+	font-size: 3em;
+}

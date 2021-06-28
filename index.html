@@ -1,0 +1,41 @@
+<html lang="en">
+<head>
+<title>Tic Tac Toe</title>
+<meta charset="utf-8"/>
+<meta name="Description" content="Tic Tac Toe">
+<link type="text/css" rel="stylesheet" href="tictactoe.css" />
+<style type="text/css">
+#board {
+	display: grid;
+	gap: 10px;
+	grid-template-columns: repeat(3, 100px);
+	grid-auto-rows: 100px;
+}
+</style>
+</head>
+<body>
+	<div id="header">
+		<div id="title">Tic Tac Toe</div>
+	</div>
+	<div id="content">
+		<div id="board">
+			<div id="c0-0" class="cell">0</div>
+			<div id="c0-1" class="cell">1</div>
+			<div id="c0-2" class="cell">2</div>
+			<div id="c1-0" class="cell">3</div>
+			<div id="c1-1" class="cell">4</div>
+			<div id="c1-2" class="cell">5</div>
+			<div id="c2-0" class="cell">6</div>
+			<div id="c2-1" class="cell">7</div>
+			<div id="c2-2" class="cell">8</div>
+		</div>
+	</div>
+	<div id="footer">
+		<div class="p">
+			Board size: <input id="bsize" type="number" size="2" value="0"/>
+			<button id="new">New game</button>
+		</div>
+	</div>
+	<script src="tictactoe.js" type="text/javascript"></script>
+</body>
+</html>

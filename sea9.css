@@ -1,0 +1,37 @@
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+.pllx {
+	perspective: 1px;
+	height: 100vh;
+	overflow-x: hidden;
+	overflow-y: auto;
+	background-color: #300000;
+}
+.pllx-layer {
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+}
+.pllx-layer-base {
+	transform: translateZ(0);
+}
+.pllx-layer-back {
+	transform: translateZ(-3px) scale(4);
+}
+
+body {
+	font-family: "Roboto",Arial,sans-serif;
+	font-weight: 300;
+	font-weight: normal;
+	font-size: 12pt;
+}
+a:active, a:link, a:visited {
+	text-decoration: none;
+	color: skyblue;
+}
