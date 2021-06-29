@@ -14,6 +14,14 @@ const game = {
 	wins: [0],
 }
 
+const tree = {
+	player: -1,
+	row: -1,
+	col: -1,
+	next: [],
+}
+let curr;
+
 function evaluate(player, row, col) {
 	const n = game.cells.length;
 
@@ -68,6 +76,7 @@ function mouseouted(row, col, eid) {
 function clicked(row, col, eid) {
 	if (game.player !== 0) { // game.player === 0 if game is not yet started or already finished
 		if (game.cells[row][col] === 0) { // cell value === 0 means unoccupied
+			// Draw the clicked cell with 'O' or 'X' according to the current turn
 			if (game.player > 0) {
 				document.getElementById(eid).textContent = 'O';
 				game.cells[row][col] = 1;
@@ -75,12 +84,24 @@ function clicked(row, col, eid) {
 				document.getElementById(eid).textContent = 'X';
 				game.cells[row][col] = -1;
 			}
-			document.getElementById(eid).setAttribute("style", "color:#424242");
-			const rslt = evaluate(game.player, row, col);
-			game.player = (game.player === -1) ? 1 : -1;
+			document.getElementById(eid).setAttribute("style", "color:#424242"); // Make the color of 'O' or 'X' solid as visual clue
+			const rslt = evaluate(game.player, row, col); // Evaluate if the latest move win or draw the game
+
+			// Build tree
+			const node = {
+				player: game.player,
+				row, col,
+				next: [],
+			};
+			curr.next.push(node);
+			curr = node;
+
+			game.player = (game.player === -1) ? 1 : -1; // Next player
 
 			if (rslt === 0) {
-				// Computer player
+				sims(tree);
+			} else {
+				console.log(tree);
 			}
 		}
 	}
@@ -103,14 +124,16 @@ function newgame() {
 
 	// Initialize the Game Status object
 	game.player = -1; // "X" start first
-
 	game.moves = 0;
 	game.wins = new Array(2 * n + 2);
 	for (let i = 0; i < game.wins.length; i ++) {
 		game.wins[i] = 0;
 	}
-
 	game.cells = new Array(n); // Delay the row and cell initialization to later, since there will be a loop later to build cell anyway
+
+	// Initialize the Tree
+	tree.player = 0;
+	curr = tree;
 
 	// Build the game board
 	let board = document.getElementById('board');
