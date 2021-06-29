@@ -76,8 +76,12 @@ function clicked(row, col, eid) {
 				game.cells[row][col] = -1;
 			}
 			document.getElementById(eid).setAttribute("style", "color:#424242");
-			evaluate(game.player, row, col);
+			const rslt = evaluate(game.player, row, col);
 			game.player = (game.player === -1) ? 1 : -1;
+
+			if (rslt === 0) {
+				// Computer player
+			}
 		}
 	}
 }
