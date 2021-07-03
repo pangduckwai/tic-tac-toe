@@ -15,7 +15,7 @@ const game = {
 }
 
 const tree = {
-	player: -1,
+	player: 255,
 	row: -1,
 	col: -1,
 	next: [],
@@ -99,9 +99,9 @@ function clicked(row, col, eid) {
 			game.player = (game.player === -1) ? 1 : -1; // Next player
 
 			if (rslt === 0) {
-				sims(tree);
-			} else {
-				console.log(tree);
+				sims(game, tree);
+			// } else {
+			// 	console.log(tree);
 			}
 		}
 	}
