@@ -96,13 +96,13 @@ function clicked(row, col, eid) {
 			curr.next.push(node);
 			curr = node;
 
-			game.player = (game.player === -1) ? 1 : -1; // Next player
-
 			if (rslt === 0) {
 				sims(game, tree);
 			// } else {
-			// 	console.log(tree);
+				// console.log(tree);
 			}
+
+			game.player = (game.player === -1) ? 1 : -1; // Next player
 		}
 	}
 }
