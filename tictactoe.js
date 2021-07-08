@@ -53,8 +53,9 @@ function evaluate(player, row, col) {
 }
 
 // Event handler for the mouse entering a cell
-function mouseentered(row, col, eid) {
+function mouseentered(row, col) {
 	if (game.cells[row][col] === 0) {
+		const eid = `c${row}-${col}`;
 		if (game.player > 0) {
 			document.getElementById(eid).textContent = 'O';
 		} else {
@@ -65,7 +66,8 @@ function mouseentered(row, col, eid) {
 }
 
 // Event handler for the mouse leaving a cell
-function mouseouted(row, col, eid) {
+function mouseouted(row, col) {
+	const eid = `c${row}-${col}`;
 	if (game.cells[row][col] === 0) {
 		document.getElementById(eid).textContent = ' ';
 		document.getElementById(eid).setAttribute("style", "color:#424242");
@@ -73,36 +75,16 @@ function mouseouted(row, col, eid) {
 }
 
 // Event handler for clicking a cell
-function clicked(row, col, eid) {
+function clicked(row, col, single) {
 	if (game.player !== 0) { // game.player === 0 if game is not yet started or already finished
 		if (game.cells[row][col] === 0) { // cell value === 0 means unoccupied
-			// Draw the clicked cell with 'O' or 'X' according to the current turn
-			if (game.player > 0) {
-				document.getElementById(eid).textContent = 'O';
-				game.cells[row][col] = 1;
-			} else {
-				document.getElementById(eid).textContent = 'X';
-				game.cells[row][col] = -1;
+			if (makeMove(game.player, game.cells, row, col) === 0) { // Evaluate if the latest move win or draw the game
+				if (single) {
+					compPlayer(game, tree, row, col);
+				} else {
+					game.player = (game.player === -1) ? 1 : -1; // Next player
+				}
 			}
-			document.getElementById(eid).setAttribute("style", "color:#424242"); // Make the color of 'O' or 'X' solid as visual clue
-			const rslt = evaluate(game.player, row, col); // Evaluate if the latest move win or draw the game
-
-			// Build tree
-			const node = {
-				player: game.player,
-				row, col,
-				next: [],
-			};
-			curr.next.push(node);
-			curr = node;
-
-			if (rslt === 0) {
-				sims(game, tree);
-			// } else {
-				// console.log(tree);
-			}
-
-			game.player = (game.player === -1) ? 1 : -1; // Next player
 		}
 	}
 }
@@ -118,9 +100,11 @@ function newgame() {
 		document.getElementById('bsize').value = 9;
 	}
 
+	const p = document.getElementById('pnumb').checked; // pnumb checked means 1 player, unchecked 2 players
+
 	// Update html
 	document.getElementById('message').innerHTML = '<div id="message" class="p">&nbsp;</div>'; // Refrest game message
-	document.getElementById('boardcss').innerHTML = `#board {grid-template-columns: repeat(${n}, 100px);}`; // Build the dynamic part of the CSS
+	document.getElementById('boardcss').innerHTML = `#board {grid-template-columns: repeat(${n}, 100px);}\n#left {width: ${110*n+10}px;}`; // dynamic part of the CSS
 
 	// Initialize the Game Status object
 	game.player = -1; // "X" start first
@@ -160,18 +144,26 @@ function newgame() {
 
 		// Add event handlers to the new cell
 		let cell = document.getElementById(eid);
-		cell.onclick = (_) => clicked(row, col, eid);
-		cell.onmouseenter = (_) => mouseentered(row, col, eid);
-		cell.onmouseout = (_) => mouseouted(row, col, eid);
+		cell.onclick = (_) => clicked(row, col, p);
+		cell.onmouseenter = (_) => mouseentered(row, col);
+		cell.onmouseout = (_) => mouseouted(row, col);
 
 		c ++;
 	}
 }
 
 function init() {
-	document.getElementById('bsize').value = 3; // default 3x3 game board
-	document.getElementById('bsize').onchange = (_) => newgame(); // Add event handler when the game board size changed
 	document.getElementById('new').onclick = (_) => newgame(); // Add event handler for the 'New game' button
+	document.getElementById('bsize').value = 3; // default 3x3 game board
+	document.getElementById('pnumb').checked = false; // default to 2 players game
+	document.getElementById('ai1st').checked = false; // default to 2 players game
+	document.getElementById('ai1st').disabled = true; // default to 2 players game
+
+	document.getElementById('pnumb').onchange = (_) => {
+		if (!document.getElementById('pnumb').checked) document.getElementById('ai1st').checked = false;
+		document.getElementById('ai1st').disabled = !document.getElementById('pnumb').checked;
+	}
+
 	newgame();
 }
 
