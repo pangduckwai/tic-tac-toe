@@ -14,13 +14,8 @@ const game = {
 	wins: [0],
 }
 
-const tree = {
-	player: 255,
-	row: -1,
-	col: -1,
-	next: [],
-}
-let curr;
+// Steps taken in the current game
+const moves = [];
 
 function evaluate(player, row, col) {
 	const n = game.cells.length;
@@ -78,9 +73,10 @@ function mouseouted(row, col) {
 function clicked(row, col, single) {
 	if (game.player !== 0) { // game.player === 0 if game is not yet started or already finished
 		if (game.cells[row][col] === 0) { // cell value === 0 means unoccupied
+			document.getElementById('message').innerHTML = '<div id="message" class="p">&nbsp;</div>';;
 			if (makeMove(game.player, game.cells, row, col) === 0) { // Evaluate if the latest move win or draw the game
 				if (single) {
-					compPlayer(game, tree, row, col);
+					compPlayer(game, moves, row, col);
 				} else {
 					game.player = (game.player === -1) ? 1 : -1; // Next player
 				}
@@ -103,7 +99,7 @@ function newgame() {
 	const p = document.getElementById('pnumb').checked; // pnumb checked means 1 player, unchecked 2 players
 
 	// Update html
-	document.getElementById('message').innerHTML = '<div id="message" class="p">&nbsp;</div>'; // Refrest game message
+	document.getElementById('message').innerHTML = '<div id="message" class="p">New game started</div>'; // Refrest game message
 	document.getElementById('boardcss').innerHTML = `#board {grid-template-columns: repeat(${n}, 100px);}\n#left {width: ${110*n+10}px;}`; // dynamic part of the CSS
 
 	// Initialize the Game Status object
@@ -115,9 +111,9 @@ function newgame() {
 	}
 	game.cells = new Array(n); // Delay the row and cell initialization to later, since there will be a loop later to build cell anyway
 
-	// Initialize the Tree
-	tree.player = 0;
-	curr = tree;
+	// Initialize the game moves
+	moves.splice(0, moves.length);
+	moves.push({ player: 0, row: -1, col: -1 });
 
 	// Build the game board
 	let board = document.getElementById('board');
@@ -159,7 +155,12 @@ function init() {
 	document.getElementById('ai1st').checked = false; // default to 2 players game
 	document.getElementById('ai1st').disabled = true; // default to 2 players game
 
+	document.getElementById('bsize').onchange = (_) => document.getElementById('message').innerHTML = '<div id="message" class="p">&nbsp;</div>';;
+
+	document.getElementById('ai1st').onchange = (_) => document.getElementById('message').innerHTML = '<div id="message" class="p">&nbsp;</div>';;
+
 	document.getElementById('pnumb').onchange = (_) => {
+		document.getElementById('message').innerHTML = '<div id="message" class="p">&nbsp;</div>';;
 		if (!document.getElementById('pnumb').checked) document.getElementById('ai1st').checked = false;
 		document.getElementById('ai1st').disabled = !document.getElementById('pnumb').checked;
 	}

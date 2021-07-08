@@ -1,5 +1,5 @@
 
-const stats = {
+const mctree = {
 	player: 0,
 	row: -1,
 	col: -1,
@@ -13,6 +13,75 @@ const stats = {
 	wins: 0,
 	runs: 1,
 };
+
+function compPlayer(game, moves, r, c) {
+	// this is the move the player just made
+	moves.push({ player: game.player, row: r, col: c });
+	// console.log(`[mov0] player: ${moves[moves.length - 1].player} -> row: ${moves[moves.length - 1].row} | col: ${moves[moves.length - 1].col}`);
+
+	// Find in the mctree the current game status
+	const { leaf, found } = track(game, moves);
+	// console.log(`[mc-t] player: ${leaf.player} -> row: ${leaf.row} | col: ${leaf.col} | next: ${leaf.next.length} ${found ? 'Found' : 'Expanded'}`);
+
+	if (found) {
+		console.log('[haha]', leaf);
+		return 255; // TODO
+	} else {
+		// When even player's move not found, subsequent moves are all new
+		const { row, col } = nextMove(game);
+		const eid = `c${row}-${col}`;
+		if (game.cells[row][col] === 0) { // nextMove selecting an occuplied node possible?
+			if (makeMove((game.player === -1) ? 1 : -1, game.cells, row, col) === 0) {
+				// this is the move the comp player just made
+				moves.push({ player: (game.player === -1) ? 1 : -1, row, col });
+				console.log(`[auto] player: ${moves[moves.length - 1].player} -> row: ${moves[moves.length - 1].row} | col: ${moves[moves.length - 1].col}`);
+
+				expand((game.player === -1) ? 1 : -1, game.cells, moves[moves.length - 1], leaf);
+				console.log(mctree);
+
+				return 0; // Game not yet conclude
+			}
+		}
+		return 255;
+	}
+}
+
+// find in the mctree the current game status
+// game - current game status
+// move - moves taken in the current game so far
+function track(game, moves) {
+	let lf = mctree;
+	let found = false;
+  for (let i = 1; i < moves.length; i ++) {
+		console.log(`[move] player: ${moves[i].player} -> row: ${moves[i].row} | col: ${moves[i].col}`);
+
+		found = false
+		for (let j = 0; j < lf.next.length; j ++) {
+			if (moves[i].player === lf.next[j].player && moves[i].row === lf.next[j].row && moves[i].col === lf.next[j].col) {
+				// Found move in mctree
+				found = true;
+				lf = lf.next[j];
+				console.log(`[mc-t] player: ${lf.player} -> row: ${lf.row} | col: ${lf.col} | next: ${lf.next.length} FOUND`);
+				break;
+			}
+		}
+
+		// Only the latest move in the current game should get a not found, since will add all possible moves in previous runs
+		// Therefore should be error if not found here but not last item in 'moves'
+		if (!found) {
+			if (i != moves.length - 1) console.log('ERROR!!!!!');
+			break;
+		}
+	}
+
+	if (found) {
+		// human player made an existing move, choose a response from the mctree or explore a new one
+		return { leaf: lf, found };
+	} else {
+		// human player made a move not yet explored
+		return { leaf: expand(game.player, game.cells, moves[moves.length - 1], lf), found }; // TODO: need to simulate games till conclusion from the leaf node
+	}
+}
 
 // Draw the clicked cell with 'O' or 'X' according to the current turn
 function makeMove(player, cells, row, col) {
@@ -28,82 +97,23 @@ function makeMove(player, cells, row, col) {
 	return evaluate(player, row, col);
 }
 
-function compPlayer(game, tree, r, c) {
-	// Build tree
+function expand(player, cells, move, leaf) {
+	// Add the new node to the mctree
 	const node = {
-		player: game.player,
-		row: r, col: c,
-		next: [],
-	};
-	curr.next.push(node);
-	curr = node;
-
-	// Find in the mctree (stats) the current game status
-	const { leaf, found } = track(game, tree);
-	console.log('>======================================<');
-	console.log(`player: ${leaf.player} -> row: ${leaf.row} | col: ${leaf.col} | next: ${leaf.next.length} ${found ? 'Found' : 'Expanded'}`);
-
-	const { row, col } = nextMove(game);
-	const eid = `c${row}-${col}`;
-	if (game.cells[row][col] === 0) { // nextMove selecting an occuplied node possible?
-		if (makeMove((game.player === -1) ? 1 : -1, game.cells, row, col) === 0) {
-			return 0; // Game not yet conclude
-		}
-	}
-	return 255;
-}
-
-// find in the mctree (stats) the current game status
-// game - current game status
-// move - moves taken in the current game so far
-function track(game, tree) {
-	let mv = tree;
-	let st = stats;
-	let found = false;
-  while (mv.next.length > 0) {
-		mv = mv.next[0];
-
-		found = false
-		for (let idx = 0; idx < st.next.length; idx ++) {
-			if (mv.player === st.next[idx].player && mv.row === st.next[idx].row && mv.col === st.next[idx].col) {
-				// Found move in stats
-				found = true;
-				st = st.next[idx];
-				break;
-			}
-		}
-
-		if (!found) break; // should be the latest move in the current game, but break here anyway...
-	}
-
-	if (found) {
-		// human player made an existing move, choose a response from the mctree or explore a new one
-		// console.log(`player: ${st.player} -> row: ${st.row} | col: ${st.col} | next: ${st.next.length} FOUND`);
-		return { leaf: st, found };
-	} else {
-		// human player made a move not yet explored
-		// console.log(`player: ${mv.player} -> row: ${mv.row} | col: ${mv.col} | next: ${mv.next.length} NOT FOUND!!!`);
-		return { leaf: expand(game, mv, st), found }; // TODO: need to simulate games till conclusion from the leaf node
-	}
-}
-
-function expand(game, move, stat) {
-	// Add the new node to the tree
-	const node = {
-		player: game.player,
+		player,
 		row: move.row,
 		col: move.col,
 		wins: 0, runs: 0,
 		next: [],
 	};
-	stat.next.push(node);
+	leaf.next.push(node);
 
 	// Add the other nodes for all the possible moves
-	for (let row = 0; row < game.cells.length; row ++) {
-		for (let col = 0; col < game.cells[row].length; col ++) {
-			if (game.cells[row][col] === 0) {
-				stat.next.push({
-					player: game.player,
+	for (let row = 0; row < cells.length; row ++) {
+		for (let col = 0; col < cells[row].length; col ++) {
+			if (cells[row][col] === 0) {
+				leaf.next.push({
+					player,
 					row, col,
 					wins: 0, runs: 0,
 					next: [],
@@ -121,7 +131,7 @@ function nextMove(game) {
 	return [
 		{row: 0, col: 0},
 		{row: 2, col: 0},
-		{row: 2, col: 1},
 		{row: 1, col: 2},
+		{row: 2, col: 1},
 	][temp ++];
 }
