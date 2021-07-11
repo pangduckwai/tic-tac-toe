@@ -17,34 +17,65 @@ const game = {
 // Steps taken in the current game
 const moves = [];
 
-function evaluate(player, row, col) {
-	const n = game.cells.length;
+// function evaluate(player, row, col) {
+// 	const n = game.cells.length;
 
-	game.moves ++;
-	if (row === col) {
-		game.wins[0] += player; // forward diagonal
-	}
-	if ((row + col + 1) === n) {
-		game.wins[1] += player; // backward diagonal
-	}
-	game.wins[col + 2] += player; // horizontal
-	game.wins[row + n + 2] += player; // vertical
+// 	game.moves ++;
+// 	if (row === col) {
+// 		game.wins[0] += player; // forward diagonal
+// 	}
+// 	if ((row + col + 1) === n) {
+// 		game.wins[1] += player; // backward diagonal
+// 	}
+// 	game.wins[col + 2] += player; // horizontal
+// 	game.wins[row + n + 2] += player; // vertical
 
-	if (game.wins.filter(w => w >= n).length > 0) {
-		document.getElementById('message').textContent = ' "O" won';
-		game.player = 0;
-		return 1;
-	} else if (game.wins.filter(w => (-1 * w) >= n).length > 0) {
-		document.getElementById('message').textContent = ' "X" won';
-		game.player = 0;
-		return -1;
-	} else if (game.moves >= n * n) {
-		document.getElementById('message').textContent = ' Draw';
-		game.player = 0;
-		return 255; // Draw
+// 	if (game.wins.filter(w => w >= n).length > 0) {
+// 		document.getElementById('message').textContent = ' "O" won';
+// 		game.player = 0;
+// 		return 1;
+// 	} else if (game.wins.filter(w => (-1 * w) >= n).length > 0) {
+// 		document.getElementById('message').textContent = ' "X" won';
+// 		game.player = 0;
+// 		return -1;
+// 	} else if (game.moves >= n * n) {
+// 		document.getElementById('message').textContent = ' Draw';
+// 		game.player = 0;
+// 		return 255; // Draw
+// 	} else {
+// 		return 0;
+// 	}
+// }
+
+// Draw the clicked cell with 'O' or 'X' according to the current turn
+function makeMove(player, cells, row, col) {
+	if (cells[row][col] !== 0) {
+		return { moved: false, result: 0 }; // cell (row,col) already occupied
+	}
+
+	const eid = `c${row}-${col}`;
+	if (player > 0) {
+		document.getElementById(eid).textContent = 'O';
+		cells[row][col] = 1;
 	} else {
-		return 0;
+		document.getElementById(eid).textContent = 'X';
+		cells[row][col] = -1;
 	}
+	document.getElementById(eid).setAttribute("style", "color:#424242"); // Make the color of 'O' or 'X' solid as visual clue
+
+	switch (evaluate(player, row, col)) {
+		case -1:
+			document.getElementById('message').textContent = ' "X" won';
+			return { moved: true, result: -1 };
+		case 1:
+			document.getElementById('message').textContent = ' "O" won';
+			return { moved: true, result: 1 };
+		case 255:
+			document.getElementById('message').textContent = ' Draw';
+			return { moved: true, result: 255 };
+		default:
+			return { moved: true, result: 0 };
+	};
 }
 
 // Event handler for the mouse entering a cell
@@ -72,15 +103,19 @@ function mouseouted(row, col) {
 // Event handler for clicking a cell
 function clicked(row, col, single) {
 	if (game.player !== 0) { // game.player === 0 if game is not yet started or already finished
-		if (game.cells[row][col] === 0) { // cell value === 0 means unoccupied
-			document.getElementById('message').innerHTML = '<div id="message" class="p">&nbsp;</div>';;
-			if (makeMove(game.player, game.cells, row, col) === 0) { // Evaluate if the latest move win or draw the game
+		document.getElementById('message').innerHTML = '<div id="message" class="p">&nbsp;</div>';;
+		const { moved, result } = makeMove(game.player, game.cells, row, col);
+		if (moved) {
+			if (result === 0) { // game not yet concluded
 				if (single) {
-					compPlayer(game, moves, row, col);
+					moves.push({ player: game.player, row, col }); // this is the move the player just made
+					compPlayer(game, moves);
 				} else {
 					game.player = (game.player === -1) ? 1 : -1; // Next player
 				}
 			}
+		} else {
+			console.log(`[${row}, ${col}] already occupied`); // TODO TEMP
 		}
 	}
 }
