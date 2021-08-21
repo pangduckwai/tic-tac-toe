@@ -52,7 +52,7 @@ const moves = [];
 // 偵測遊戲結果，返回：0 - 遊戲繼續; -1 - 'X'勝; 1 - 'O'勝; 255 - 打和
 function evaluate() {
 	let val1, val2;
-	moves ++;
+	let empty = 0;
 
 	// 橫直
 	for (let i = 0; i < 3; i ++) {
@@ -61,6 +61,9 @@ function evaluate() {
 		for (let j = 0; j < 3; j ++) {
 			val1 += cells[i][j];
 			val2 += cells[j][i];
+			if (cells[i][j] === 0) {
+				empty ++;
+			}
 		}
 		if ((val1 === -3) || (val2 === -3)) {
 			return -1;
@@ -83,7 +86,7 @@ function evaluate() {
 	}
 
 	// 為什麼最後才檢查打和？
-	if (moves === 9) {
+	if (empty <= 0) {
 		return 255;
 	}
 
