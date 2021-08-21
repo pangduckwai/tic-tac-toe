@@ -62,8 +62,10 @@ function evaluate() {
 			val1 += cells[i][j];
 			val2 += cells[j][i];
 		}
-		if ((val1 === -3) || (val1 === 3) || (val2 === -3) || (val2 === 3)) {
-			return player; // 為什麼只需要考慮當前的玩家？
+		if ((val1 === -3) || (val2 === -3)) {
+			return -1;
+		} else if ((val1 === 3) || (val2 === 3)) {
+			return 1;
 		}
 	}
 
@@ -74,8 +76,10 @@ function evaluate() {
 		val1 += cells[i][i];
 		val2 += cells[2 - i][i];
 	}
-	if ((val1 === -3) || (val1 === 3) || (val2 === -3) || (val2 === 3)) {
-		return player; // 為什麼只需要考慮當前的玩家？
+	if ((val1 === -3) || (val2 === -3)) {
+		return -1;
+	} else if ((val1 === 3) || (val2 === 3)) {
+		return 1;
 	}
 
 	// 為什麼最後才檢查打和？
