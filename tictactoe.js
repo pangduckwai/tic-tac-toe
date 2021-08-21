@@ -47,6 +47,46 @@ const moves = [];
 // 	}
 // }
 
+// Alternate evaluate function:
+/*
+// 偵測遊戲結果，返回：0 - 遊戲繼續; -1 - 'X'勝; 1 - 'O'勝; 255 - 打和
+function evaluate() {
+	let val1, val2;
+	moves ++;
+
+	// 橫直
+	for (let i = 0; i < 3; i ++) {
+		val1 = 0; // 橫
+		val2 = 0; // 直
+		for (let j = 0; j < 3; j ++) {
+			val1 += cells[i][j];
+			val2 += cells[j][i];
+		}
+		if ((val1 === -3) || (val1 === 3) || (val2 === -3) || (val2 === 3)) {
+			return player; // 為什麼只需要考慮當前的玩家？
+		}
+	}
+
+	val1 = 0;
+	val2 = 0;
+	// 斜
+	for (let i = 0; i < 3; i ++) {
+		val1 += cells[i][i];
+		val2 += cells[2 - i][i];
+	}
+	if ((val1 === -3) || (val1 === 3) || (val2 === -3) || (val2 === 3)) {
+		return player; // 為什麼只需要考慮當前的玩家？
+	}
+
+	// 為什麼最後才檢查打和？
+	if (moves === 9) {
+		return 255;
+	}
+
+	return 0;
+}
+*/
+
 // Draw the clicked cell with 'O' or 'X' according to the current turn
 function makeMove(player, cells, row, col) {
 	if (cells[row][col] !== 0) {
