@@ -73,9 +73,12 @@ function sim(root, grid, run) {
 		node.runs ++;
 		if (
 			(conclusion === -1 && node.player === -1) ||
-			(conclusion === 1 && node.player === 1) ||
-			(conclusion === 255)
-		) node.wins ++;
+			(conclusion === 1 && node.player === 1)
+		) {
+			node.wins += 2;
+		} else if (conclusion === 255) {
+			node.wins ++;
+		}
 		node = node.parent;
 	}
 
@@ -93,8 +96,14 @@ const mapped = [' X', ' _', ' O'];
 function track(tree, moves) {
 	let lf = tree;
 	let found = false;
+
+	if (moves.length <= 1 && moves[0].player === lf.player && moves[0].row === lf.row && moves[0].col === lf.col) {
+		found = true;
+		console.log(`[tree] FOUND : ${lf.show()}`);
+	}
+
   for (let i = 1; i < moves.length; i ++) {
-		console.log(`[move] player: ${mapped[moves[i].player + 1]} -> row: ${moves[i].row} | col: ${moves[i].col}`);
+		console.log(`[move] player: ${mapped[moves[i].player + 1]}${(''+moves[i].row).padStart(2, ' ')}${(''+moves[i].col).padStart(2, ' ')}`);
 
 		found = false
 		for (let j = 0; j < lf.next.length; j ++) {
@@ -121,7 +130,7 @@ function track(tree, moves) {
 	} else {
 		// human player made a move not yet explored
 		// TODO: should simulate games till conclusion from the leaf node
-		throw new Error(`Unexplored move ${JSON.stringify(moves)} made by the HUMONS!!!`);
+		throw new Error(`Unexplored move ${JSON.stringify(moves[moves.length - 1])} on ${show(lf, 2)}`);
 	}
 }
 

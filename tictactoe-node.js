@@ -28,10 +28,10 @@ class Node {
 		const p = mapped[this.player + 1];
 		const r = this.row < 0 ? ' -' : (''+this.row).padStart(2, ' ');
 		const c = this.col < 0 ? ' -' : (''+this.col).padStart(2, ' ');
-		const m = (''+this.moves).padStart(2, ' ');
-		const n = (''+this.runs).padStart(7, ' ');
-		const w = (''+this.wins).padStart(7, ' ');
-		const l = (''+this.next.length).padStart(2, ' ');
+		const m = (''+this.moves).padStart(3, ' ');
+		const n = (''+this.runs).padStart(8, ' ');
+		const w = (''+this.wins).padStart(8, ' ');
+		const l = (''+this.next.length).padStart(3, ' ');
 		return `${p}${r}${c}${m}${l}|${w}/${n}`;
 	}
 

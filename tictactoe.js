@@ -10,9 +10,9 @@ let root;
 // Background simulation runs
 const INTERVAL = 1; // 1 second timer interval
 const IDLE = 2; // 2 seconds
-const INITIAL = 50000; // initial simulation runs
-const SUBSQNT = 10000; // subsequent simulation runs
-let RUNS = 1000000; // total simulation runs
+const INITIAL = 100000; // initial simulation runs
+const SUBSQNT = 50000; // subsequent simulation runs
+let RUNS = 2000000; // total simulation runs
 let idled;
 let thread;
 
@@ -111,6 +111,8 @@ function compPlayer() {
 			if (makeMove(leaf.next[idx].row, leaf.next[idx].col)) {
 				console.log(`[leaf] SELECT: ${leaf.next[idx].show()}`);
 			}
+		} else {
+			throw new Error(`Leaf node ${leaf.show()} found!!!`);
 		}
 	}
 }
@@ -152,7 +154,7 @@ function newgame() {
 
 	// Update html
 	document.getElementById('message').innerHTML = '<div id="message" class="p">New game started</div>'; // Refrest game message
-	document.getElementById('boardcss').innerHTML = `#board {grid-template-columns: repeat(${n}, 100px);}\n#left {width: ${110*n+10}px;}`; // dynamic part of the CSS
+	document.getElementById('boardcss').innerHTML = `#board {grid-template-columns: repeat(${n}, 70px);}\n#left {width: ${80*n+10}px;}`; // dynamic part of the CSS
 
 	// Initialize the Game Status object
 	game = new Game(n);
@@ -195,6 +197,10 @@ function newgame() {
 
 	idled = 0;
 	if (game.single) {
+		if (root && n !== root.grid) {
+			RUNS = 2000000;
+			root = undefined;
+		}
 		if (!!root) {
 			if (RUNS > 0)
 				console.log(`Simulation already running: ${RUNS}`);
@@ -209,6 +215,10 @@ function newgame() {
 
 			idled = 1;
 			thread = setInterval(() => idle(), INTERVAL * 1000);
+		}
+
+		if (document.getElementById('ai1st').checked) {
+			compPlayer();
 		}
 	}
 }
