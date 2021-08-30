@@ -7,6 +7,15 @@ let moves = [];
 // m.c. tree
 let root;
 
+// Background simulation runs
+const INTERVAL = 1; // 1 second timer interval
+const IDLE = 2; // 2 seconds
+const INITIAL = 50000; // initial simulation runs
+const SUBSQNT = 10000; // subsequent simulation runs
+let RUNS = 1000000; // total simulation runs
+let idled;
+let thread;
+
 // Event handler for the mouse entering a cell
 function mouseentered(row, col) {
 	if (game.cells[row][col] === 0) {
@@ -45,10 +54,10 @@ function makeMove(row, col) {
 		const conclusion = game.evaluate(row, col);
 		if (conclusion < 0) {
 			document.getElementById('message').textContent = ' "X" won';
-			return;
+			return true;
 		} else if (conclusion > 0) {
 			document.getElementById('message').textContent = ' "O" won';
-			return;
+			return true;
 		}
 
 		if (game.single) {
@@ -57,25 +66,30 @@ function makeMove(row, col) {
 
 		if (!game.nextTurn()) {
 			document.getElementById('message').textContent = ' Draw';
-			return;
 		}
+
+		return true;
 	} catch (error) {
 		const msg = `${error}`;
 		if (!msg.includes('already occupied')) {
 			console.log(msg);
 		}
 	}
+
+	return false;
 }
 
 // Event handler for clicking a cell
 function clicked(row, col) {
+	idled = 0;
 	if (game.player !== 0) { // game.player === 0 if game is not yet started or already finished
 		document.getElementById('message').innerHTML = '<div id="message" class="p">&nbsp;</div>';;
 
 		try {
-			makeMove(row, col);
-			if (game.single) {
-				compPlayer(); // AI's turn to move
+			if (makeMove(row, col)) {
+				if (game.single) {
+					compPlayer(); // AI's turn to move
+				}
 			}
 		} catch (error) {
 			const msg = `${error}`;
@@ -90,11 +104,37 @@ function compPlayer() {
 	if (game.player !== 0) {
 		const { leaf, found } = track(root, moves);
 		// console.log(found, leaf.next.length, leaf.show());
+
 		if (found && leaf.next.length > 0) {
 			// select the next move
 			const idx = leaf.ucb();
-			makeMove(leaf.next[idx].row, leaf.next[idx].col);
-			console.log(`[leaf] SELECT: ${leaf.next[idx].show()}`);
+			if (makeMove(leaf.next[idx].row, leaf.next[idx].col)) {
+				console.log(`[leaf] SELECT: ${leaf.next[idx].show()}`);
+			}
+		}
+	}
+}
+
+function idle() {
+	if (RUNS <= 0) {
+		clearInterval(thread);
+		console.log('Timer stopped');
+		return;
+	}
+
+	if (idled < IDLE) {
+		idled ++;
+		// console.log(`${idled} waiting...`);
+	} else {
+		if (RUNS > 0) {
+			console.log(`RUNS: ${RUNS}`);
+			idled = 0;
+			const { grid, runs, newly } = simulate(root.grid, SUBSQNT, root);
+			RUNS -= runs;
+			if (RUNS <= 0) {
+				console.log(`Ran ${runs} (${runs - newly}) simulations of ${grid} x ${grid} games (RUNS: ${RUNS})`);
+				console.log(show(root, 1));
+			}
 		}
 	}
 }
@@ -120,13 +160,6 @@ function newgame() {
 
 	// Initialize the game moves
 	moves = [{ player: 0, row: -1, col: -1 }];
-
-	if (game.single) {
-		const { tree, grid, runs, newly } = simulate(n, 100000);
-		console.log(`Ran ${runs} (${runs - newly}) simulations of a ${grid} x ${grid} game`);
-		console.log(show(tree, 1));
-		root = tree;
-	}
 
 	// Build the game board
 	let board = document.getElementById('board');
@@ -159,6 +192,25 @@ function newgame() {
 	}
 
 	game.nextTurn(); // start game
+
+	idled = 0;
+	if (game.single) {
+		if (!!root) {
+			if (RUNS > 0)
+				console.log(`Simulation already running: ${RUNS}`);
+			else
+				console.log(`Simulation already finished: ${RUNS}`);
+		} else {
+			const { tree, grid, runs, newly } = simulate(n, INITIAL, root);
+			RUNS -= runs;
+			console.log(`Ran ${runs} (${runs - newly}) simulations of ${grid} x ${grid} games`);
+			console.log(show(tree, 1));
+			root = tree;
+
+			idled = 1;
+			thread = setInterval(() => idle(), INTERVAL * 1000);
+		}
+	}
 }
 
 function init() {

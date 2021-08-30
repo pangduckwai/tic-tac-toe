@@ -39,7 +39,6 @@ class Node {
 	add(row, col, moves) {
 		const p = (this.player === 0) ? -1 : -1 * this.player; // "X" start first
 		const node = new Node(p, row, col, moves);
-		node.grid = this.grid;
 		this.next.push(node);
 		node.parent = this;
 		return node;

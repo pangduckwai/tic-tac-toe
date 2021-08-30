@@ -86,21 +86,6 @@ function sim(root, grid, run) {
 	return { run, completed };
 }
 
-function simulate(grid, runs) {
-	const tree = Node.root(grid);
-	let count = 0;
-	for (let i = 0; i < runs; i ++) {
-		const { completed } = sim(tree, grid, i);
-		if (completed) count ++;
-	}
-	return {
-		tree,
-		grid,
-		runs,
-		newly: runs - count,
-	}
-}
-
 const mapped = [' X', ' _', ' O'];
 
 // find in the mctree the current game status
@@ -137,5 +122,26 @@ function track(tree, moves) {
 		// human player made a move not yet explored
 		// TODO: should simulate games till conclusion from the leaf node
 		throw new Error(`Unexplored move ${JSON.stringify(moves)} made by the HUMONS!!!`);
+	}
+}
+
+// Start or continue simulations
+function simulate(grid, runs, tree) {
+	if (!tree) {
+		console.log(`Initializing a new tree of ${grid} x ${grid} games`);
+		tree = Node.root(grid);
+	}
+
+	let count = 0;
+	for (let i = 0; i < runs; i ++) {
+		const { completed } = sim(tree, grid, i);
+		if (completed) count ++;
+	}
+
+	return {
+		tree,
+		grid,
+		runs,
+		newly: runs - count,
 	}
 }
