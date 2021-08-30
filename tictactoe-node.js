@@ -31,7 +31,8 @@ class Node {
 		const m = (''+this.moves).padStart(2, ' ');
 		const n = (''+this.runs).padStart(7, ' ');
 		const w = (''+this.wins).padStart(7, ' ');
-		return `${p}${r}${c}${m}|${w}/${n}`;
+		const l = (''+this.next.length).padStart(2, ' ');
+		return `${p}${r}${c}${m}${l}|${w}/${n}`;
 	}
 
 	// create new child node

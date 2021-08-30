@@ -45,10 +45,10 @@ function makeMove(row, col) {
 		const conclusion = game.evaluate(row, col);
 		if (conclusion < 0) {
 			document.getElementById('message').textContent = ' "X" won';
-			return undefined;
+			return;
 		} else if (conclusion > 0) {
 			document.getElementById('message').textContent = ' "O" won';
-			return undefined;
+			return;
 		}
 
 		if (game.single) {
@@ -57,10 +57,8 @@ function makeMove(row, col) {
 
 		if (!game.nextTurn()) {
 			document.getElementById('message').textContent = ' Draw';
-			return undefined;
+			return;
 		}
-
-		return result;
 	} catch (error) {
 		const msg = `${error}`;
 		if (!msg.includes('already occupied')) {
@@ -89,12 +87,15 @@ function clicked(row, col) {
 }
 
 function compPlayer() {
-	const { leaf, found } = track(root, moves);
-	console.log(found, leaf.next.length, leaf.show());
-	if (found && leaf.next.length > 0) {
-		// select the next move
-		const idx = leaf.ucb();
-		makeMove(leaf.next[idx].row, leaf.next[idx].col);
+	if (game.player !== 0) {
+		const { leaf, found } = track(root, moves);
+		// console.log(found, leaf.next.length, leaf.show());
+		if (found && leaf.next.length > 0) {
+			// select the next move
+			const idx = leaf.ucb();
+			makeMove(leaf.next[idx].row, leaf.next[idx].col);
+			console.log(`[leaf] SELECT: ${leaf.next[idx].show()}`);
+		}
 	}
 }
 
@@ -121,7 +122,7 @@ function newgame() {
 	moves = [{ player: 0, row: -1, col: -1 }];
 
 	if (game.single) {
-		const { tree, grid, runs, newly } = simulate(n, 30000);
+		const { tree, grid, runs, newly } = simulate(n, 100000);
 		console.log(`Ran ${runs} (${runs - newly}) simulations of a ${grid} x ${grid} game`);
 		console.log(show(tree, 1));
 		root = tree;

@@ -101,13 +101,15 @@ function simulate(grid, runs) {
 	}
 }
 
+const mapped = [' X', ' _', ' O'];
+
 // find in the mctree the current game status
 // move - moves taken in the current game so far
 function track(tree, moves) {
 	let lf = tree;
 	let found = false;
   for (let i = 1; i < moves.length; i ++) {
-		console.log(`[move] player: ${moves[i].player} -> row: ${moves[i].row} | col: ${moves[i].col}`);
+		console.log(`[move] player: ${mapped[moves[i].player + 1]} -> row: ${moves[i].row} | col: ${moves[i].col}`);
 
 		found = false
 		for (let j = 0; j < lf.next.length; j ++) {
@@ -115,7 +117,7 @@ function track(tree, moves) {
 				// Found move in mctree
 				found = true;
 				lf = lf.next[j];
-				console.log(`[tree] player: ${lf.player} -> row: ${lf.row} | col: ${lf.col} | next: ${lf.next.length} FOUND`);
+				console.log(`[tree] FOUND : ${lf.show()}`);
 				break;
 			}
 		}
