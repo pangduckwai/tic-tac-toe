@@ -10,7 +10,7 @@ function chooseMove(game, node) {
 	const n = avil.length;
 
 	for (const mov of avil) {
-		if (node.next.filter(v => v.row === mov.r && v.col === mov.c).length <= 0) {
+		if (node.next.filter(v => v !== undefined && v.row === mov.r && v.col === mov.c).length <= 0) { //[git:lean]
 			mov.m = n - 1;
 			return mov;
 		}
@@ -36,7 +36,7 @@ function sim(root, grid, run) {
 		}
 
 		let move;
-		if (node.next.length <= 0 || node.next.length < node.moves) {
+		if (node.next.filter(t => t !== undefined).length < node.next.length) { //[git:lean]
 			// leaf node encountered or unvisited move exists, expand the mctree
 			move = chooseMove(game, node);
 			game.makeMove(move.r, move.c); // call this b4 'noode.add()' to ensure the move is valid (position not yet occupied)
@@ -106,7 +106,7 @@ function track(tree, moves) {
 		console.log(`[move] player: ${mapped[moves[i].player + 1]}${(''+moves[i].row).padStart(2, ' ')}${(''+moves[i].col).padStart(2, ' ')}`);
 
 		found = false
-		for (let j = 0; j < lf.next.length; j ++) {
+		for (let j = 0; j < lf.next.filter(t => t !== undefined).length; j ++) { //[git:lean]
 			if (moves[i].player === lf.next[j].player && moves[i].row === lf.next[j].row && moves[i].col === lf.next[j].col) {
 				// Found move in mctree
 				found = true;

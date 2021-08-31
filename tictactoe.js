@@ -103,9 +103,8 @@ function clicked(row, col) {
 function compPlayer() {
 	if (game.player !== 0) {
 		const { leaf, found } = track(root, moves);
-		// console.log(found, leaf.next.length, leaf.show());
 
-		if (found && leaf.next.length > 0) {
+		if (found && leaf.next.filter(t => t !== undefined).length > 0) { //[git:lean]
 			// select the next move
 			const idx = leaf.ucb();
 			if (makeMove(leaf.next[idx].row, leaf.next[idx].col)) {
@@ -238,6 +237,27 @@ function init() {
 		document.getElementById('message').innerHTML = '<div id="message" class="p">&nbsp;</div>';;
 		if (!document.getElementById('pnumb').checked) document.getElementById('ai1st').checked = false;
 		document.getElementById('ai1st').disabled = !document.getElementById('pnumb').checked;
+	}
+}
+
+function test() {
+	const a = new Array(5);
+	console.log('Length', a.length, a.filter(t => t !== undefined).length);
+
+	a[0] = 11;
+	a[1] = 12;
+	a[a.findIndex(t => t === undefined)] = 13;
+	// a[a.findIndex(t => t === undefined)] = 14;
+
+	console.log('Array A', a, a.filter(t => t !== undefined).length);
+	console.log('Array B', a.filter(t => t !== undefined));
+
+	for (const t of a) {
+		console.log('1', t);
+	}
+
+	for (let i = 0; i < a.length; i ++) {
+		console.log('2', a[i]);
 	}
 }
 

@@ -8,8 +8,8 @@ class Node {
 		this.player = p;
 		this.row = r;
 		this.col = c;
-		this.moves = m;
-		this.next = [];
+		// this.moves = m; //[git:lean]
+		this.next = new Array(m); //[git:lean]
 		this.runs = 0;
 		this.wins = 0;
 	}
@@ -28,18 +28,17 @@ class Node {
 		const p = mapped[this.player + 1];
 		const r = this.row < 0 ? ' -' : (''+this.row).padStart(2, ' ');
 		const c = this.col < 0 ? ' -' : (''+this.col).padStart(2, ' ');
-		const m = (''+this.moves).padStart(3, ' ');
 		const n = (''+this.runs).padStart(8, ' ');
 		const w = (''+this.wins).padStart(8, ' ');
-		const l = (''+this.next.length).padStart(3, ' ');
-		return `${p}${r}${c}${m}${l}|${w}/${n}`;
+		const m = (''+this.next.length).padStart(3, ' ');
+		return `${p}${r}${c}${m}|${w}/${n}`;
 	}
 
 	// create new child node
 	add(row, col, moves) {
 		const p = (this.player === 0) ? -1 : -1 * this.player; // "X" start first
 		const node = new Node(p, row, col, moves);
-		this.next.push(node);
+		this.next[this.next.findIndex(t => t === undefined)] = node; //[git:lean] this.next.push(node);
 		node.parent = this;
 		return node;
 	}
@@ -51,7 +50,7 @@ class Node {
 		let max = -1.0;
 		const idx0 = [];
 		const idx1 = [];
-		for (let i = 0; i < this.next.length; i ++) {
+		for (let i = 0; i < this.next.filter(t => t !== undefined).length; i ++) { //[git:lean]
 			if (this.next[i].runs === 0) {
 				idx0.push(i);
 			} else {
@@ -90,8 +89,8 @@ function show(node, lvl) {
 		stck = stack[0];
 		prfx = prfix[0];
 		if (lvl < 0 || (prfx + 1) <= lvl) {
-			stack = stck.next.concat(stack.slice(1));
-			prfix = stck.next.map(_ => prfx + 1).concat(prfix.slice(1));
+			stack = stck.next.filter(t => t !== undefined).concat(stack.slice(1)); //[git:lean]
+			prfix = stck.next.filter(t => t !== undefined).map(_ => prfx + 1).concat(prfix.slice(1)); //[git:lean]
 		} else {
 			stack = stack.slice(1);
 			prfix = prfix.slice(1);
