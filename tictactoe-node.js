@@ -8,8 +8,8 @@ class Node {
 		this.player = p;
 		this.row = r;
 		this.col = c;
-		// this.moves = m; //[git:lean]
-		this.next = new Array(m); //[git:lean]
+		// this.moves = m; //[git:lean:1]
+		this.next = new Array(m); //[git:lean:1]
 		this.runs = 0;
 		this.wins = 0;
 	}
@@ -38,7 +38,7 @@ class Node {
 	add(row, col, moves) {
 		const p = (this.player === 0) ? -1 : -1 * this.player; // "X" start first
 		const node = new Node(p, row, col, moves);
-		this.next[this.next.findIndex(t => t === undefined)] = node; //[git:lean] this.next.push(node);
+		this.next[this.next.findIndex(t => t === undefined)] = node; //[git:lean:1] this.next.push(node);
 		node.parent = this;
 		return node;
 	}
@@ -50,7 +50,7 @@ class Node {
 		let max = -1.0;
 		const idx0 = [];
 		const idx1 = [];
-		for (let i = 0; i < this.next.filter(t => t !== undefined).length; i ++) { //[git:lean]
+		for (let i = 0; i < this.next.filter(t => t !== undefined).length; i ++) { //[git:lean:1]
 			if (this.next[i].runs === 0) {
 				idx0.push(i);
 			} else {
@@ -89,8 +89,8 @@ function show(node, lvl) {
 		stck = stack[0];
 		prfx = prfix[0];
 		if (lvl < 0 || (prfx + 1) <= lvl) {
-			stack = stck.next.filter(t => t !== undefined).concat(stack.slice(1)); //[git:lean]
-			prfix = stck.next.filter(t => t !== undefined).map(_ => prfx + 1).concat(prfix.slice(1)); //[git:lean]
+			stack = stck.next.filter(t => t !== undefined).concat(stack.slice(1)); //[git:lean:1]
+			prfix = stck.next.filter(t => t !== undefined).map(_ => prfx + 1).concat(prfix.slice(1)); //[git:lean:1]
 		} else {
 			stack = stack.slice(1);
 			prfix = prfix.slice(1);

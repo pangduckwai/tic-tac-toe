@@ -104,7 +104,7 @@ function compPlayer() {
 	if (game.player !== 0) {
 		const { leaf, found } = track(root, moves);
 
-		if (found && leaf.next.filter(t => t !== undefined).length > 0) { //[git:lean]
+		if (found && leaf.next.filter(t => t !== undefined).length > 0) { //[git:lean:1]
 			// select the next move
 			const idx = leaf.ucb();
 			if (makeMove(leaf.next[idx].row, leaf.next[idx].col)) {
