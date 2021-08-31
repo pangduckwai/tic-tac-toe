@@ -11,7 +11,7 @@ function chooseMove(game, node) {
 	const n = game.grid();
 
 	for (const mov of avil) {
-		if (node.next.filter(v => v !== undefined && v.row(n) === mov.r && v.col(n) === mov.c).length <= 0) { //[git:lean:1,2]
+		if (node.next.filter(v => v !== undefined && v.row(n) === mov.r && v.col(n) === mov.c).length <= 0) {
 			mov.m = m - 1;
 			return mov;
 		}
@@ -37,7 +37,7 @@ function sim(root, grid, run) {
 		}
 
 		let move;
-		if (node.next.filter(t => t !== undefined).length < node.next.length) { //[git:lean:1]
+		if (node.next.filter(t => t !== undefined).length < node.next.length) {
 			// leaf node encountered or unvisited move exists, expand the mctree
 			move = chooseMove(game, node);
 			game.makeMove(move.r, move.c); // call this b4 'noode.add()' to ensure the move is valid (position not yet occupied)
@@ -46,7 +46,7 @@ function sim(root, grid, run) {
 		} else {
 			// select a move from the tree
 			const idx = node.ucb();
-			move = { r: node.next[idx].row(grid), c: node.next[idx].col(grid) }; //[git:lean:2]
+			move = { r: node.next[idx].row(grid), c: node.next[idx].col(grid) };
 			game.makeMove(move.r, move.c);
 			node = node.next[idx];
 		}
@@ -94,11 +94,11 @@ const mapped = [' X', ' _', ' O'];
 
 // find in the mctree the current game status
 // move - moves taken in the current game so far
-function track(n, tree, moves) { //[git:lean:2]
+function track(n, tree, moves) {
 	let lf = tree;
 	let found = false;
 
-	if (moves.length <= 1 && moves[0].player === lf.player && moves[0].row === lf.row(n) && moves[0].col === lf.col(n)) { //[git:lean:2]
+	if (moves.length <= 1 && moves[0].player === lf.player && moves[0].row === lf.row(n) && moves[0].col === lf.col(n)) {
 		found = true;
 		console.log(`[tree] FOUND : ${lf.show(n)}`);
 	}
@@ -107,7 +107,7 @@ function track(n, tree, moves) { //[git:lean:2]
 		console.log(`[move] player: ${mapped[moves[i].player + 1]}${(''+moves[i].row).padStart(2, ' ')}${(''+moves[i].col).padStart(2, ' ')}`);
 
 		found = false
-		for (let j = 0; j < lf.next.filter(t => t !== undefined).length; j ++) { //[git:lean:1]
+		for (let j = 0; j < lf.next.filter(t => t !== undefined).length; j ++) {
 			if (moves[i].player === lf.next[j].player && moves[i].row === lf.next[j].row(n) && moves[i].col === lf.next[j].col(n)) {
 				// Found move in mctree
 				found = true;
