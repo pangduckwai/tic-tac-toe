@@ -4,10 +4,11 @@ const EXPLORATION = 1.4142135623730950488016887242097 // √2
 
 // A node in the m.c. tree
 class Node {
-	constructor(p, r, c, m) {
+	constructor(n, p, r, c, m) { //[git:lean:2]
 		this.player = p;
-		this.row = r;
-		this.col = c;
+		// this.row = r; //[git:lean:2]
+		// this.col = c; //[git:lean:2]
+		this.pos = (r < 0 || c < 0) ? -1 : n * r + c; //[git:lean:2]
 		// this.moves = m; //[git:lean:1]
 		this.next = new Array(m); //[git:lean:1]
 		this.runs = 0;
@@ -17,27 +18,42 @@ class Node {
 	// create root node
 	static root(n) {
 		if (n < 3 || n > 9) throw new Error(`Unsupported grid size ${n}`);
-		const root = new Node(0, -1, -1, n * n);
+		const root = new Node(n, 0, -1, -1, n * n); //[git:lean:2]
 		root.grid = n;
 		root.runs = 1;
 		return root;
 	}
 
-	show() {
+	row(n) { //[git:lean:2]
+		if (this.pos < 0) return -1;
+		return Math.floor(this.pos / n);
+	}
+
+	col(n) { //[git:lean:2]
+		if (this.pos < 0) return -1;
+		return this.pos % n;
+	}
+
+	show(n) { //[git:lean:2]
 		const mapped = [' X', ' _', ' O'];
+		// const [row, col] = this.pos(n); //[git:lean:2]
+		const row = this.row(n);
+		const col = this.col(n);
+
 		const p = mapped[this.player + 1];
-		const r = this.row < 0 ? ' -' : (''+this.row).padStart(2, ' ');
-		const c = this.col < 0 ? ' -' : (''+this.col).padStart(2, ' ');
-		const n = (''+this.runs).padStart(8, ' ');
+		const r = row < 0 ? ' -' : (''+row).padStart(2, ' '); //[git:lean:2]
+		const c = col < 0 ? ' -' : (''+col).padStart(2, ' '); //[git:lean:2]
+		const u = (''+this.runs).padStart(8, ' ');
 		const w = (''+this.wins).padStart(8, ' ');
 		const m = (''+this.next.length).padStart(3, ' ');
-		return `${p}${r}${c}${m}|${w}/${n}`;
+		const l = (''+this.next.filter(t => t !== undefined).length).padStart(3, ' ');
+		return `${p}${r}${c}|${l}/${m}|${w}/${u}`; //[git:lean:2]
 	}
 
 	// create new child node
-	add(row, col, moves) {
+	add(n, row, col, moves) { //[git:lean:2]
 		const p = (this.player === 0) ? -1 : -1 * this.player; // "X" start first
-		const node = new Node(p, row, col, moves);
+		const node = new Node(n, p, row, col, moves); //[git:lean:2]
 		this.next[this.next.findIndex(t => t === undefined)] = node; //[git:lean:1] this.next.push(node);
 		node.parent = this;
 		return node;
@@ -77,7 +93,7 @@ class Node {
 	}
 }
 
-function show(node, lvl) {
+function show(n, node, lvl) {
 	if (!(node instanceof Node)) throw new Error('Invalid input argument type');
 
 	let buff = '';
@@ -96,7 +112,7 @@ function show(node, lvl) {
 			prfix = prfix.slice(1);
 		}
 
-		buff += `${' '.repeat(prfx).padEnd(9, '─')}${prfx} - ${stck.show()}\n`;
+		buff += `${' '.repeat(prfx).padEnd(9, '─')}${prfx} - ${stck.show(n)}\n`;
 	}
 	return buff;
 }

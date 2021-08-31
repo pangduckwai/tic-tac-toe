@@ -25,6 +25,10 @@ class Game {
 		}
 	}
 
+	grid() {
+		return this.cells.length;
+	}
+
 	show() {
 		const mapped = [' X', ' _', ' O'];
 		return this.cells.reduce(

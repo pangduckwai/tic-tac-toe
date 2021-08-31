@@ -102,16 +102,17 @@ function clicked(row, col) {
 
 function compPlayer() {
 	if (game.player !== 0) {
-		const { leaf, found } = track(root, moves);
+		const { leaf, found } = track(root.grid, root, moves);
+		const n = root.grid;
 
 		if (found && leaf.next.filter(t => t !== undefined).length > 0) { //[git:lean:1]
 			// select the next move
 			const idx = leaf.ucb();
-			if (makeMove(leaf.next[idx].row, leaf.next[idx].col)) {
-				console.log(`[leaf] SELECT: ${leaf.next[idx].show()}`);
+			if (makeMove(leaf.next[idx].row(n), leaf.next[idx].col(n))) {
+				console.log(`[leaf] SELECT: ${leaf.next[idx].show(n)}`);
 			}
 		} else {
-			throw new Error(`Leaf node ${leaf.show()} found!!!`);
+			throw new Error(`Leaf node ${leaf.show(n)} found!!!`);
 		}
 	}
 }
@@ -134,7 +135,7 @@ function idle() {
 			RUNS -= runs;
 			if (RUNS <= 0) {
 				console.log(`Ran ${runs} (${runs - newly}) simulations of ${grid} x ${grid} games (RUNS: ${RUNS})`);
-				console.log(show(root, 1));
+				console.log(show(root.gird, root, 1));
 			}
 		}
 	}
@@ -209,7 +210,7 @@ function newgame() {
 			const { tree, grid, runs, newly } = simulate(n, INITIAL, root);
 			RUNS -= runs;
 			console.log(`Ran ${runs} (${runs - newly}) simulations of ${grid} x ${grid} games`);
-			console.log(show(tree, 1));
+			console.log(show(n, tree, 1));
 			root = tree;
 
 			idled = 1;
@@ -241,23 +242,34 @@ function init() {
 }
 
 function test() {
-	const a = new Array(5);
-	console.log('Length', a.length, a.filter(t => t !== undefined).length);
+	// const a = new Array(5);
+	// console.log('Length', a.length, a.filter(t => t !== undefined).length);
 
-	a[0] = 11;
-	a[1] = 12;
-	a[a.findIndex(t => t === undefined)] = 13;
-	// a[a.findIndex(t => t === undefined)] = 14;
+	// a[0] = 11;
+	// a[1] = 12;
+	// a[a.findIndex(t => t === undefined)] = 13;
+	// // a[a.findIndex(t => t === undefined)] = 14;
 
-	console.log('Array A', a, a.filter(t => t !== undefined).length);
-	console.log('Array B', a.filter(t => t !== undefined));
+	// console.log('Array A', a, a.filter(t => t !== undefined).length);
+	// console.log('Array B', a.filter(t => t !== undefined));
 
-	for (const t of a) {
-		console.log('1', t);
+	// for (const t of a) {
+	// 	console.log('1', t);
+	// }
+
+	// for (let i = 0; i < a.length; i ++) {
+	// 	console.log('2', a[i]);
+	// }
+
+	const n = 3;
+	const p = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+	const t = [];
+	for (let i = 0; i < p.length; i ++) {
+		t.push([Math.floor(p[i] / n), p[i] % n]);
 	}
-
-	for (let i = 0; i < a.length; i ++) {
-		console.log('2', a[i]);
+	for (let i = 0; i < t.length; i ++) {
+		const [row, col] = t[i];
+		console.log(`row ${row} | col ${col}`);
 	}
 }
 

@@ -1,4 +1,4 @@
-// Randomly pick an available move base on the state of the current game
+// Pick the first available move base on the state of the current game
 // n - grid size; r - row; c - column:
 // cell index = n*r + c
 function chooseMove(game, node) {
@@ -7,11 +7,12 @@ function chooseMove(game, node) {
 	if (game.player !== -1 && game.player !== 1) throw new Error('Game not in progress');
 
 	const avil = game.availableMoves();
-	const n = avil.length;
+	const m = avil.length;
+	const n = game.grid();
 
 	for (const mov of avil) {
-		if (node.next.filter(v => v !== undefined && v.row === mov.r && v.col === mov.c).length <= 0) { //[git:lean:1]
-			mov.m = n - 1;
+		if (node.next.filter(v => v !== undefined && v.row(n) === mov.r && v.col(n) === mov.c).length <= 0) { //[git:lean:1,2]
+			mov.m = m - 1;
 			return mov;
 		}
 	}
@@ -40,12 +41,12 @@ function sim(root, grid, run) {
 			// leaf node encountered or unvisited move exists, expand the mctree
 			move = chooseMove(game, node);
 			game.makeMove(move.r, move.c); // call this b4 'noode.add()' to ensure the move is valid (position not yet occupied)
-			node = node.add(move.r, move.c, move.m);
+			node = node.add(grid, move.r, move.c, move.m);
 			break;
 		} else {
 			// select a move from the tree
 			const idx = node.ucb();
-			move = { r: node.next[idx].row, c: node.next[idx].col };
+			move = { r: node.next[idx].row(grid), c: node.next[idx].col(grid) }; //[git:lean:2]
 			game.makeMove(move.r, move.c);
 			node = node.next[idx];
 		}
@@ -93,13 +94,13 @@ const mapped = [' X', ' _', ' O'];
 
 // find in the mctree the current game status
 // move - moves taken in the current game so far
-function track(tree, moves) {
+function track(n, tree, moves) { //[git:lean:2]
 	let lf = tree;
 	let found = false;
 
-	if (moves.length <= 1 && moves[0].player === lf.player && moves[0].row === lf.row && moves[0].col === lf.col) {
+	if (moves.length <= 1 && moves[0].player === lf.player && moves[0].row === lf.row(n) && moves[0].col === lf.col(n)) { //[git:lean:2]
 		found = true;
-		console.log(`[tree] FOUND : ${lf.show()}`);
+		console.log(`[tree] FOUND : ${lf.show(n)}`);
 	}
 
   for (let i = 1; i < moves.length; i ++) {
@@ -107,11 +108,11 @@ function track(tree, moves) {
 
 		found = false
 		for (let j = 0; j < lf.next.filter(t => t !== undefined).length; j ++) { //[git:lean:1]
-			if (moves[i].player === lf.next[j].player && moves[i].row === lf.next[j].row && moves[i].col === lf.next[j].col) {
+			if (moves[i].player === lf.next[j].player && moves[i].row === lf.next[j].row(n) && moves[i].col === lf.next[j].col(n)) {
 				// Found move in mctree
 				found = true;
 				lf = lf.next[j];
-				console.log(`[tree] FOUND : ${lf.show()}`);
+				console.log(`[tree] FOUND : ${lf.show(n)}`);
 				break;
 			}
 		}
@@ -130,7 +131,7 @@ function track(tree, moves) {
 	} else {
 		// human player made a move not yet explored
 		// TODO: should simulate games till conclusion from the leaf node
-		throw new Error(`Unexplored move ${JSON.stringify(moves[moves.length - 1])} on ${show(lf, 2)}`);
+		throw new Error(`Unexplored move ${JSON.stringify(moves[moves.length - 1])} on:\n${show(n, lf, 2)}`);
 	}
 }
 
