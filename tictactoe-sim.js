@@ -90,51 +90,6 @@ function sim(root, grid, run) {
 	return { run, completed };
 }
 
-const mapped = [' X', ' _', ' O'];
-
-// find in the mctree the current game status
-// move - moves taken in the current game so far
-function track(n, tree, moves) {
-	let lf = tree;
-	let found = false;
-
-	if (moves.length <= 1 && moves[0].player === lf.player && moves[0].row === lf.row(n) && moves[0].col === lf.col(n)) {
-		found = true;
-		console.log(`[tree] FOUND : ${lf.show(n)}`);
-	}
-
-  for (let i = 1; i < moves.length; i ++) {
-		console.log(`[move] player: ${mapped[moves[i].player + 1]}${(''+moves[i].row).padStart(2, ' ')}${(''+moves[i].col).padStart(2, ' ')}`);
-
-		found = false
-		for (let j = 0; j < lf.next.filter(t => t !== undefined).length; j ++) {
-			if (moves[i].player === lf.next[j].player && moves[i].row === lf.next[j].row(n) && moves[i].col === lf.next[j].col(n)) {
-				// Found move in mctree
-				found = true;
-				lf = lf.next[j];
-				console.log(`[tree] FOUND : ${lf.show(n)}`);
-				break;
-			}
-		}
-
-		// Only the latest move in the current game should get a not found, since will add all possible moves in previous runs
-		// Therefore should be error if not found here but not last item in 'moves'
-		if (!found) {
-			if (i != moves.length - 1) throw new Error('Unable to find a move in the m.c. tree before reaching the last move');
-			break;
-		}
-	}
-
-	if (found) {
-		// human player made an existing move, choose a response from the mctree or explore a new one
-		return { leaf: lf, found };
-	} else {
-		// human player made a move not yet explored
-		// TODO: should simulate games till conclusion from the leaf node
-		throw new Error(`Unexplored move ${JSON.stringify(moves[moves.length - 1])} on:\n${show(n, lf, 2)}`);
-	}
-}
-
 // Start or continue simulations
 function simulate(grid, runs, tree) {
 	if (!tree) {
@@ -153,5 +108,55 @@ function simulate(grid, runs, tree) {
 		grid,
 		runs,
 		newly: runs - count,
+	}
+}
+
+const mapped = [' X', ' _', ' O'];
+
+// find in the mctree the current game status
+// move - moves taken in the current game so far
+function track(root, steps, move) {
+	const n = root.grid;
+	let found = false;
+	let index; // Index of 'move' in the 'next' array of the current node
+	let indexNext = -1; // Index of the next move made by the AI player
+
+	// navigate the tree to the current node
+	let leaf = root;
+	for (const step of steps) {
+		if (leaf.next.filter(t => t !== undefined).length <= step) {
+			// 'steps' expecting the tree has a node, is an error if turns out not the case
+			throw new Error(`Expecting a child node at position ${step} of node ${leaf.show(n)}`);
+		}
+		leaf = leaf.next[step];
+	}
+
+	// current node found, try to find the latest move in this current node
+	if (!move) {
+		found = true;
+	} else {
+		console.log(`[move] player: ${mapped[move.player + 1]}${(''+move.row).padStart(2, ' ')}${(''+move.col).padStart(2, ' ')}`);
+		for (index = 0; index < leaf.next.filter(t => t !== undefined).length; index ++) {
+			if (move.player === leaf.next[index].player && move.row === leaf.next[index].row(n) && move.col === leaf.next[index].col(n)) {
+				found = true; // found latest move in mctree
+				leaf = leaf.next[index];
+				console.log(`[tree] FOUND : ${leaf.show(n)}`);
+				break;
+			}
+		}
+	}
+
+	if (!found) {
+		// human player made a move not yet explored
+		// TODO: should start a simulation from the current node
+		return { index: -1, indexNext, leaf };
+	} else if (leaf.next.filter(t => t !== undefined).length <= 0) {
+		// unexplored leaf node found
+		// TODO: should start a simulation from the current node
+		return { index, indexNext: -1, leaf };
+	} else {
+		indexNext = leaf.ucb();
+		leaf = leaf.next[indexNext];
+		return { index, indexNext, leaf };
 	}
 }

@@ -3,6 +3,7 @@ let game;
 
 // Steps taken in the current game
 let moves = [];
+let steps = [];
 
 // m.c. tree
 let root;
@@ -10,9 +11,10 @@ let root;
 // Background simulation runs
 const INTERVAL = 1; // 1 second timer interval
 const IDLE = 2; // 2 seconds
-const INITIAL = 100000; // initial simulation runs
-const SUBSQNT = 50000; // subsequent simulation runs
-let RUNS = 2000000; // total simulation runs
+const INITIAL = 50000; // initial simulation runs
+const SUBSQNT = 10000; // subsequent simulation runs
+const TOTRUNS = 1000000;
+let RUNS = TOTRUNS; // total simulation runs
 let idled;
 let thread;
 
@@ -100,19 +102,24 @@ function clicked(row, col) {
 	}
 }
 
+// AI player's turn
 function compPlayer() {
 	if (game.player !== 0) {
-		const { leaf, found } = track(root.grid, root, moves);
+		const { index, indexNext, leaf } = track(root, steps, (moves.length > 0) ? moves[moves.length - 1] : undefined);
 		const n = root.grid;
 
-		if (found && leaf.next.filter(t => t !== undefined).length > 0) {
-			// select the next move
-			const idx = leaf.ucb();
-			if (makeMove(leaf.next[idx].row(n), leaf.next[idx].col(n))) {
-				console.log(`[leaf] SELECT: ${leaf.next[idx].show(n)}`);
-			}
+		if (index !== undefined && index < 0) {
+			// TODO TEMP: should start a simulation from the current node
+			throw new Error(`Unexplored move ${JSON.stringify(moves[moves.length - 1])} on:\n${show(n, leaf, 2)}`);
+		} else if (indexNext < 0) {
+			// TODO TEMP: should start a simulation from the current node
+			throw new Error(`No move available on:\n${show(n, leaf, 1)}`);
 		} else {
-			throw new Error(`Leaf node ${leaf.show(n)} found!!!`);
+			if (index !== undefined) steps.push(index);
+			steps.push(indexNext);
+			if (makeMove(leaf.row(n), leaf.col(n))) {
+				console.log(`[leaf] SELECT: ${leaf.show(n)}`);
+			}
 		}
 	}
 }
@@ -129,7 +136,7 @@ function idle() {
 		// console.log(`${idled} waiting...`);
 	} else {
 		if (RUNS > 0) {
-			console.log(`RUNS: ${RUNS}`);
+			console.log(`RUNS: ${RUNS}/${TOTRUNS}`);
 			idled = 0;
 			const { grid, runs, newly } = simulate(root.grid, SUBSQNT, root);
 			RUNS -= runs;
@@ -161,7 +168,8 @@ function newgame() {
 	game['single'] = document.getElementById('pnumb').checked; // pnumb checked means 1 player, unchecked 2 players
 
 	// Initialize the game moves
-	moves = [{ player: 0, row: -1, col: -1 }];
+	moves = [];
+	steps = [];
 
 	// Build the game board
 	let board = document.getElementById('board');
@@ -198,14 +206,14 @@ function newgame() {
 	idled = 0;
 	if (game.single) {
 		if (root && n !== root.grid) {
-			RUNS = 2000000;
+			RUNS = TOTRUNS;
 			root = undefined;
 		}
 		if (!!root) {
 			if (RUNS > 0)
-				console.log(`Simulation already running: ${RUNS}`);
+				console.log(`Simulation running: ${RUNS}/${TOTRUNS}`);
 			else
-				console.log(`Simulation already finished: ${RUNS}`);
+				console.log(`Simulation finished: ${RUNS}/${TOTRUNS}`);
 		} else {
 			const { tree, grid, runs, newly } = simulate(n, INITIAL, root);
 			RUNS -= runs;
