@@ -163,12 +163,12 @@ function track(root, game, move) {
 	}
 
 	// current node found, try to find the latest move in this current node
-	console.log(`[track] move : ${[' X', ' _', ' O'][move.player + 1]}${(''+move.row).padStart(2, ' ')}${(''+move.col).padStart(2, ' ')}`);
+	// console.log(`[track] move : ${[' X', ' _', ' O'][move.player + 1]}${(''+move.row).padStart(2, ' ')}${(''+move.col).padStart(2, ' ')}`);
 	for (index = 0; index < leaf.next.filter(t => t !== undefined).length; index ++) {
 		if (move.player === leaf.next[index].player && move.row === leaf.next[index].row(n) && move.col === leaf.next[index].col(n)) {
 			found = true; // found latest move in mctree
 			leaf = leaf.next[index];
-			console.log(`[track] found: ${leaf.show(n)}`);
+			// console.log(`[track] found: ${leaf.show(n)}`);
 			break;
 		}
 	}

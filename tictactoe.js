@@ -80,8 +80,7 @@ function clicked(row, col) {
 		if (game.ai) moves.push({ player: game.player, row, col }); // this is the move just made
 		const { index, leaf } = (game.ai) ? track(root, game, (moves.length > 0) ? moves[moves.length - 1] : undefined) : { index: undefined, leaf: undefined };
 		if (index && index < 0) {
-			console.log(`Unexplored move [${row}, ${col}]`);
-
+			// The human player just made an unexplored move
 			const avil = game.availableMoves();
 			for (let i = 0; i < avil.length; i ++) {
 				if (leaf.next.filter(v => v !== undefined && v.row(n) === avil[i].r && v.col(n) === avil[i].c).length <= 0) {
@@ -90,8 +89,7 @@ function clicked(row, col) {
 						makeMove(avil[i].r, avil[i].c);
 						game.steps.push(i);
 						const { grid, runs, newly } = contSim(root, game, SUBSQNT);
-						console.log(`Adding ${runs} (${runs - newly}) simulations of ${grid} x ${grid} games`);
-						console.log(show(n, leaf, 2)); // TODO TEMP
+						// console.log(`Adding ${runs} (${runs - newly}) simulations of ${grid} x ${grid} games`);
 						if (!evaluate(avil[i].r, avil[i].c)) {
 							if (game.ai) {
 								compPlayer(newNode); // AI's turn to move
@@ -102,6 +100,7 @@ function clicked(row, col) {
 				}
 			}
 		} else {
+			// Found the corresponding node of the move the human player just made, normal operation
 			makeMove(row, col);
 			if (game.ai) game.steps.push(index);
 			if (!evaluate(row, col)) {
@@ -119,51 +118,51 @@ function compPlayer(leaf) {
 		const n = game.grid();
 
 		if (leaf.next.filter(t => t !== undefined).length < leaf.next.length) {
+			// Unexplored and/or not fully explored node found
 			// NOTE: Since no node under leaf, should add a node under leaf (by chooseMove()), afterward then can do sim()
 			// NOTE: What about if leaf is partially explored? should expand instead of UCB?
-			console.log(`No move available at ${leaf.show(n)}`);
-
 			const move = chooseMove(game, leaf);
 			makeMove(move.r, move.c);
 			const { index } = leaf.add(n, move.r, move.c, move.m);
 			game.steps.push(index);
 			const { grid, runs, newly } = contSim(root, game, SUBSQNT);
 			if (evaluate(move.r, move.c)) return;
-			console.log(`Adding ${runs} (${runs - newly}) simulations of ${grid} x ${grid} games`);
-			console.log(show(n, leaf, 2)); // TODO TEMP
+			// console.log(`Adding ${runs} (${runs - newly}) simulations of ${grid} x ${grid} games`);
 		} else {
+			// Find a fully explored node, normal operation
 			const indexNext = leaf.ucb();
 			makeMove(leaf.next[indexNext].row(n), leaf.next[indexNext].col(n));
 			game.steps.push(indexNext);
 			if (evaluate(leaf.next[indexNext].row(n), leaf.next[indexNext].col(n))) return;
-			console.log(`[comp] select: ${leaf.next[indexNext].show(n)}`);
+			// console.log(`[comp] select: ${leaf.next[indexNext].show(n)}`);
 		}
 	}
 }
 
-function worker() {
-	if (RUNS <= 0) {
-		clearInterval(thread);
-		console.log('Timer stopped');
-		return;
-	}
+// TODO: disabled for the moment
+// function worker() {
+// 	if (RUNS <= 0) {
+// 		clearInterval(thread);
+// 		console.log('Timer stopped');
+// 		return;
+// 	}
 
-	if (idled < IDLE) {
-		idled ++;
-		// console.log(`${idled} waiting...`);
-	} else {
-		if (RUNS > 0) {
-			console.log(`RUNS: ${RUNS}/${TOTRUNS}`);
-			idled = 0;
-			const { grid, runs, newly } = startSim(root, game.grid(), SUBSQNT);
-			RUNS -= runs;
-			if (RUNS <= 0) {
-				console.log(`Ran ${runs} (${runs - newly}) simulations of ${grid} x ${grid} games (RUNS: ${RUNS})`);
-				console.log(show(root.gird, root, 1));
-			}
-		}
-	}
-}
+// 	if (idled < IDLE) {
+// 		idled ++;
+// 		// console.log(`${idled} waiting...`);
+// 	} else {
+// 		if (RUNS > 0) {
+// 			console.log(`RUNS: ${RUNS}/${TOTRUNS}`);
+// 			idled = 0;
+// 			const { grid, runs, newly } = startSim(root, game.grid(), SUBSQNT);
+// 			RUNS -= runs;
+// 			if (RUNS <= 0) {
+// 				console.log(`Ran ${runs} (${runs - newly}) simulations of ${grid} x ${grid} games (RUNS: ${RUNS})`);
+// 				console.log(show(root.gird, root, 1));
+// 			}
+// 		}
+// 	}
+// }
 
 function newgame() {
 	let n = document.getElementById('bsize').value;
@@ -227,16 +226,16 @@ function newgame() {
 			root = undefined;
 		}
 		if (!!root) {
-			console.log(`Simulation ${(RUNS > 0) ? 'running' : 'finished'}: ${RUNS}/${TOTRUNS}`);
+		// 	console.log(`Simulation ${(RUNS > 0) ? 'running' : 'finished'}: ${RUNS}/${TOTRUNS}`);
 		} else {
 			const { tree, grid, runs, newly } = startSim(root, n, INITIAL);
 			RUNS -= runs;
 			console.log(`Ran ${runs} (${runs - newly}) simulations of ${grid} x ${grid} games`);
-			console.log(show(n, tree, 1));
+			// console.log(show(n, tree, 1));
 			root = tree;
 
 			idled = 1;
-			// thread = setInterval(() => worker(), INTERVAL * 1000); TODO HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			// thread = setInterval(() => worker(), INTERVAL * 1000); TODO: disabled for the moment
 		}
 
 		if (document.getElementById('ai1st').checked) {

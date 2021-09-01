@@ -142,12 +142,12 @@ function sync(root, game) {
 		// console.log(`Sync... ${step} ${leaf.show(n)}`);
 		leaf = leaf.next[step];
 		if (game.cells[leaf.row(n)][leaf.col(n)] === 0) {
-			console.log(`Not sync 1: ${leaf.show(n)}\n${game.show()}`)
+			// console.log(`Not sync 1: ${leaf.show(n)}\n${game.show()}`)
 			return undefined; // game and tree not sync
 		}
 	}
 	if (game.player !== leaf.player) {
-		console.log(`Not sync 2: ${leaf.show(n)}\n${game.show()}`)
+		// console.log(`Not sync 2: ${leaf.show(n)}\n${game.show()}`)
 		return undefined; // game and tree not sync
 	}
 
