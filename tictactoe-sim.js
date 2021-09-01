@@ -20,7 +20,7 @@ function chooseMove(game, node) {
 	throw new Error('No available move left');
 }
 
-// Simulate a game from start to finish
+// Run a game until it is concluded
 function sim(root, game, run) {
 	if (!(root instanceof Node)) throw new Error('Invalid input argument type');
 	if (!(game instanceof Game)) throw new Error('Invalid input argument type for Game');
@@ -31,11 +31,12 @@ function sim(root, game, run) {
 	let conclusion = 0;
 	let completed = false;
 
-	if (game.steps) { // simulation not starting at the very begining
+	if (game.steps) { // simulation not starting at the very begining of a game
 		node = sync(root, game);
 		if (!node) throw new Error('Tree not sync with the give game');
 	}
 
+	// Select the next move by searching the m.c. tree
 	while (conclusion === 0) {
 		if (!game.nextTurn()) {
 			conclusion = 255;
@@ -49,7 +50,7 @@ function sim(root, game, run) {
 			game.makeMove(move.r, move.c); // call this b4 'add()' to ensure the move is valid (position not yet occupied)
 			const { newNode } = node.add(n, move.r, move.c, move.m);
 			node = newNode;
-			break;
+			break; // since leaf node is found, break the while loop to continue
 		} else {
 			// select a move from the tree
 			const idx = node.ucb();
@@ -97,7 +98,7 @@ function sim(root, game, run) {
 	return { run, completed };
 }
 
-// Start simulations
+// Start simulations for new games
 function startSim(root, grid, runs) {
 	if (!root) {
 		console.log(`Initializing a new tree of ${grid} x ${grid} games`);
@@ -119,7 +120,7 @@ function startSim(root, grid, runs) {
 	}
 }
 
-// Continue simulation
+// Continue simulation of an existing game
 function contSim(root, game, runs) {
 	if (!(root instanceof Node)) throw new Error('Invalid input argument type for Node');
 	if (!(game instanceof Game)) throw new Error('Invalid input argument type for Game');
@@ -140,7 +141,7 @@ function contSim(root, game, runs) {
 }
 
 // find in the mctree the current game status
-// move - moves taken in the current game so far
+// move - the latest move taken in the current game so far
 function track(root, game, move) {
 	if (!(root instanceof Node)) throw new Error('Invalid input argument type for Node');
 	if (!(game instanceof Game)) throw new Error('Invalid input argument type for Game');
@@ -150,7 +151,6 @@ function track(root, game, move) {
 	const n = game.grid();
 	let found = false;
 	let index; // Index of 'move' in the 'next' array of the current node
-	// let indexNext = -1; // Index of the next move made by the AI player
 
 	// navigate the tree to the current node
 	let leaf = root;

@@ -8,14 +8,14 @@ let root;
 let moves = [];
 
 // Background simulation runs
-const INTERVAL = 1; // 1 second timer interval
-const IDLE = 2; // 2 seconds
+// const INTERVAL = 1; // 1 second timer interval
+// const IDLE = 2; // 2 seconds
 const INITIAL = 100000; // initial simulation runs
 const SUBSQNT = 50000; // subsequent simulation runs
-const TOTRUNS = 1000000;
-let RUNS = TOTRUNS; // total simulation runs
-let idled;
-let thread;
+// const TOTRUNS = 1000000; // Total number of runs
+// let RUNS = TOTRUNS; // total simulation runs
+// let idled;
+// let thread;
 
 // Event handler for the mouse entering a cell
 function mouseentered(row, col) {
@@ -39,7 +39,7 @@ function mouseouted(row, col) {
 	}
 }
 
-// make a move
+// make a move and update the HTML
 function makeMove(row, col) {
 	game.makeMove(row, col);
 
@@ -52,7 +52,7 @@ function makeMove(row, col) {
 	document.getElementById(eid).setAttribute("style", "color:#424242"); // Make the color of 'O' or 'X' solid as visual clue
 }
 
-// check game status
+// check game status and update the HTML
 function evaluate(row, col) {
 	const conclusion = game.evaluate(row, col);
 	if (conclusion < 0) {
@@ -73,7 +73,7 @@ function evaluate(row, col) {
 // Event handler for clicking a cell
 function clicked(row, col) {
 	const n = game.grid();
-	idled = 0;
+	// idled = 0; // Indicate the user just clicked something, reset the idel timer. // TODO: disabled for the moment
 	if (game.player !== 0) { // game.player === 0 if game is not yet started or already finished
 		document.getElementById('message').innerHTML = '<div id="message" class="p">&nbsp;</div>';;
 
@@ -219,27 +219,28 @@ function newgame() {
 
 	game.nextTurn(); // start game
 
-	idled = 0;
+	// idled = 0; // TODO: disabled for the moment
 	if (game.ai) {
-		if (root && n !== root.grid) {
-			RUNS = TOTRUNS;
+		if (root && n !== root.grid) { // Discard the m.c. tree if the player change the game board size
+			// RUNS = TOTRUNS; // TODO: disabled for the moment
 			root = undefined;
 		}
-		if (!!root) {
-		// 	console.log(`Simulation ${(RUNS > 0) ? 'running' : 'finished'}: ${RUNS}/${TOTRUNS}`);
-		} else {
+
+		if (!!root) { // If the m.c. tree is not undefined, don't need to do anything
+		 	// console.log(`Simulation ${(RUNS > 0) ? 'running' : 'finished'}: ${RUNS}/${TOTRUNS}`);
+		} else { // Otherwise build a new m.c. tree
 			const { tree, grid, runs, newly } = startSim(root, n, INITIAL);
-			RUNS -= runs;
+			// RUNS -= runs; // TODO: disabled for the moment
 			console.log(`Ran ${runs} (${runs - newly}) simulations of ${grid} x ${grid} games`);
 			// console.log(show(n, tree, 1));
 			root = tree;
 
-			idled = 1;
-			// thread = setInterval(() => worker(), INTERVAL * 1000); TODO: disabled for the moment
+			// idled = 1; // TODO: disabled for the moment
+			// thread = setInterval(() => worker(), INTERVAL * 1000); // TODO: disabled for the moment
 		}
 
 		if (document.getElementById('ai1st').checked) {
-			compPlayer(root);
+			compPlayer(root); // if the AI should move first
 		}
 	}
 }

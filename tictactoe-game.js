@@ -1,10 +1,16 @@
 // Game Status
 // player: indicate which player's turn it is
-//  - player == -1 => 'X'
-//  - player == +1 => 'O'
-// cells: n x n grid with value: 0 (unoccupied), -1 (occupied by 'X'), +1 (occupied by 'O')
+//    - player == -1 => 'X'
+//    - player == +1 => 'O'
+// cells: n x n grid with value:
+//    -  0: (unoccupied)
+//    - -1: (occupied by 'X')
+//    - +1: (occupied by 'O')
 // wins: statistic for all winning conditions (n + n + 2, that is each horizontal and vertical lines plus the 2 diagonals)
-//  - 0: forward diagonal, 1: backward diagonal, the rest are horizontals then vertical
+//    - 0: forward diagonal
+//    - 1: backward diagonal, the rest are horizontals then vertical
+// steps: the array of indices of the 'next[]' array of a m.c. tree node (tictactoe-node.js), which is for navigating from the root node
+//     to the node denoting the current state of the game
 class Game {
 	constructor(n) {
 		if (n < 3 || n > 9) throw new Error(`Unsupported game board size ${n}`);
@@ -61,10 +67,12 @@ class Game {
 		return g;
 	}
 
+	// Get the grid size of the game board
 	grid() {
 		return this.cells.length;
 	}
 
+	// Display the current state of the game
 	show() {
 		return this.cells.reduce(
 			(str, row) => str += row.reduce(
@@ -126,6 +134,7 @@ class Game {
 		}
 	}
 
+	// List a available (remain) legal moves of the game in its current state
 	availableMoves() {
 		return this.cells.reduce(
 			(v1, c1, r) => {

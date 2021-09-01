@@ -3,6 +3,14 @@
 const EXPLORATION = 1.4142135623730950488016887242097 // √2
 
 // A node in the m.c. tree
+// player: indicate which player's turn it is
+//    - player == -1 => 'X'
+//    - player == +1 => 'O'
+// pos: To minimize the size of a node, store the position of a cell (1 integer) by its index instead of row and colume (2 integers)
+// next: The array pointing to the subsequent child nodes of the m.c. tree
+// runs: total number of runs of this particular game path
+// wins: total number of wins of this particular game path
+// grid: ONLY EXISTS in the root node. The grid size of the game board
 class Node {
 	constructor(n, p, r, c, m) {
 		this.player = p;
@@ -12,25 +20,28 @@ class Node {
 		this.wins = 0;
 	}
 
-	// create root node
+	// create the root node
 	static root(n) {
 		if (n < 3 || n > 9) throw new Error(`Unsupported grid size ${n}`);
 		const root = new Node(n, 0, -1, -1, n * n);
 		root.grid = n;
-		root.runs = 1;
+		root.runs = 1; // The root node itself, by merely existing, is considered to have run once
 		return root;
 	}
 
+	// Deduce the row by the cell index
 	row(n) {
 		if (this.pos < 0) return -1;
 		return Math.floor(this.pos / n);
 	}
 
+	// Deduce the colume by the cell index
 	col(n) {
 		if (this.pos < 0) return -1;
 		return this.pos % n;
 	}
 
+	// Display the information of a node
 	show(n) {
 		const row = this.row(n);
 		const col = this.col(n);
@@ -55,18 +66,7 @@ class Node {
 		return { newNode, index };
 	}
 
-	// // insert new child node
-	// insert(n, index, row, col, moves) {
-	// 	if (index < 0 || index >= this.moves) throw new Error(`Index ${index} out of range ${this.moves}`);
-	// 	if (this.next[index] !== undefined) throw new Error(`Child node ${index} already populated`);
-	// 	const p = (this.player === 0) ? -1 : -1 * this.player; // "X" start first
-	// 	const node = new Node(n, p, row, col, moves);
-	// 	this.next[index] = node;
-	// 	node.parent = this;
-	// 	return node;
-	// }
-
-	// calculate ucb value
+	// calculate ucb (Upper Confidence Bound) value
 	ucb() {
 		let ni = (this.runs === 0) ? 1 : Math.log(this.runs);
 
@@ -100,6 +100,7 @@ class Node {
 	}
 }
 
+// Display the m.c. tree
 function show(n, node, lvl) {
 	if (!(node instanceof Node)) throw new Error('Invalid input argument type');
 
