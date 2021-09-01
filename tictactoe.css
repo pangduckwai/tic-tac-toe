@@ -104,7 +104,7 @@ a:active, a:link, a:visited {
 	border: 1px solid;
 	justify-content: center;
 	align-items: center;
-	font-size: 3em;
+	font-size: 0.7em;
 	cursor: pointer;
 	color: #424242;
 }

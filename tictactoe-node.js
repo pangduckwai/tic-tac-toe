@@ -32,11 +32,10 @@ class Node {
 	}
 
 	show(n) {
-		const mapped = [' X', ' _', ' O'];
 		const row = this.row(n);
 		const col = this.col(n);
 
-		const p = mapped[this.player + 1];
+		const p = [' X', ' _', ' O'][this.player + 1];
 		const r = row < 0 ? ' -' : (''+row).padStart(2, ' ');
 		const c = col < 0 ? ' -' : (''+col).padStart(2, ' ');
 		const u = (''+this.runs).padStart(8, ' ');
@@ -46,14 +45,26 @@ class Node {
 		return `${p}${r}${c}|${l}/${m}|${w}/${u}`;
 	}
 
-	// create new child node
+	// add new child node
 	add(n, row, col, moves) {
 		const p = (this.player === 0) ? -1 : -1 * this.player; // "X" start first
-		const node = new Node(n, p, row, col, moves);
-		this.next[this.next.findIndex(t => t === undefined)] = node;
-		node.parent = this;
-		return node;
+		const newNode = new Node(n, p, row, col, moves);
+		const index = this.next.findIndex(t => t === undefined);
+		this.next[index] = newNode;
+		newNode.parent = this;
+		return { newNode, index };
 	}
+
+	// // insert new child node
+	// insert(n, index, row, col, moves) {
+	// 	if (index < 0 || index >= this.moves) throw new Error(`Index ${index} out of range ${this.moves}`);
+	// 	if (this.next[index] !== undefined) throw new Error(`Child node ${index} already populated`);
+	// 	const p = (this.player === 0) ? -1 : -1 * this.player; // "X" start first
+	// 	const node = new Node(n, p, row, col, moves);
+	// 	this.next[index] = node;
+	// 	node.parent = this;
+	// 	return node;
+	// }
 
 	// calculate ucb value
 	ucb() {
@@ -108,7 +119,37 @@ function show(n, node, lvl) {
 			prfix = prfix.slice(1);
 		}
 
-		buff += `${' '.repeat(prfx).padEnd(9, '─')}${prfx} - ${stck.show(n)}\n`;
+		buff += `${' '.repeat(prfx).padEnd(9, '─')} ${prfx}: ${stck.show(n)}\n`;
 	}
 	return buff;
+}
+
+// walk down the m.c. tree to the node specified by the steps, and return the node if it is sync with the given game
+function sync(root, game) {
+	if (!(root instanceof Node)) throw new Error('Invalid input argument type for Node');
+	if (!(game instanceof Game)) throw new Error('Invalid input argument type for Game');
+	if (root.player !== 0) throw new Error('Root node required');
+	if (!game.steps) throw new Error('The game given is not for interactive use');
+
+	const n = game.grid();
+
+	let leaf = root;
+	for (const step of game.steps) {
+		if (leaf.next.filter(t => t !== undefined).length <= step) {
+			// 'steps' expecting the tree has a node, is an error if turns out not the case
+			throw new Error(`Expecting a child node at position ${step} of node ${leaf.show(n)}`);
+		}
+		// console.log(`Sync... ${step} ${leaf.show(n)}`);
+		leaf = leaf.next[step];
+		if (game.cells[leaf.row(n)][leaf.col(n)] === 0) {
+			console.log(`Not sync 1: ${leaf.show(n)}\n${game.show()}`)
+			return undefined; // game and tree not sync
+		}
+	}
+	if (game.player !== leaf.player) {
+		console.log(`Not sync 2: ${leaf.show(n)}\n${game.show()}`)
+		return undefined; // game and tree not sync
+	}
+
+	return leaf;
 }

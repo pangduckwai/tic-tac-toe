@@ -1,18 +1,17 @@
 // Game Status
 let game;
 
-// Steps taken in the current game
-let moves = [];
-let steps = [];
-
 // m.c. tree
 let root;
+
+// Steps taken in the current game
+let moves = [];
 
 // Background simulation runs
 const INTERVAL = 1; // 1 second timer interval
 const IDLE = 2; // 2 seconds
-const INITIAL = 50000; // initial simulation runs
-const SUBSQNT = 10000; // subsequent simulation runs
+const INITIAL = 100000; // initial simulation runs
+const SUBSQNT = 50000; // subsequent simulation runs
 const TOTRUNS = 1000000;
 let RUNS = TOTRUNS; // total simulation runs
 let idled;
@@ -42,89 +41,107 @@ function mouseouted(row, col) {
 
 // make a move
 function makeMove(row, col) {
-	try {
-		game.makeMove(row, col);
+	game.makeMove(row, col);
 
-		const eid = `c${row}-${col}`;
-		if (game.player > 0) {
-			document.getElementById(eid).textContent = 'O';
-		} else {
-			document.getElementById(eid).textContent = 'X';
-		}
-		document.getElementById(eid).setAttribute("style", "color:#424242"); // Make the color of 'O' or 'X' solid as visual clue
+	const eid = `c${row}-${col}`;
+	if (game.player > 0) {
+		document.getElementById(eid).textContent = 'O';
+	} else {
+		document.getElementById(eid).textContent = 'X';
+	}
+	document.getElementById(eid).setAttribute("style", "color:#424242"); // Make the color of 'O' or 'X' solid as visual clue
+}
 
-		const conclusion = game.evaluate(row, col);
-		if (conclusion < 0) {
-			document.getElementById('message').textContent = ' "X" won';
-			return true;
-		} else if (conclusion > 0) {
-			document.getElementById('message').textContent = ' "O" won';
-			return true;
-		}
-
-		if (game.single) {
-			moves.push({ player: game.player, row, col }); // this is the move just made
-		}
-
-		if (!game.nextTurn()) {
-			document.getElementById('message').textContent = ' Draw';
-		}
-
+// check game status
+function evaluate(row, col) {
+	const conclusion = game.evaluate(row, col);
+	if (conclusion < 0) {
+		document.getElementById('message').textContent = ' "X" won';
 		return true;
-	} catch (error) {
-		const msg = `${error}`;
-		if (!msg.includes('already occupied')) {
-			console.log(msg);
-		}
+	} else if (conclusion > 0) {
+		document.getElementById('message').textContent = ' "O" won';
+		return true;
 	}
 
+	if (!game.nextTurn()) {
+		document.getElementById('message').textContent = ' Draw';
+		return true;
+	}
 	return false;
 }
 
 // Event handler for clicking a cell
 function clicked(row, col) {
+	const n = game.grid();
 	idled = 0;
 	if (game.player !== 0) { // game.player === 0 if game is not yet started or already finished
 		document.getElementById('message').innerHTML = '<div id="message" class="p">&nbsp;</div>';;
 
-		try {
-			if (makeMove(row, col)) {
-				if (game.single) {
-					compPlayer(); // AI's turn to move
+		if (game.ai) moves.push({ player: game.player, row, col }); // this is the move just made
+		const { index, leaf } = (game.ai) ? track(root, game, (moves.length > 0) ? moves[moves.length - 1] : undefined) : { index: undefined, leaf: undefined };
+		if (index && index < 0) {
+			console.log(`Unexplored move [${row}, ${col}]`);
+
+			const avil = game.availableMoves();
+			for (let i = 0; i < avil.length; i ++) {
+				if (leaf.next.filter(v => v !== undefined && v.row(n) === avil[i].r && v.col(n) === avil[i].c).length <= 0) {
+					const { newNode } = leaf.add(n, avil[i].r, avil[i].c, avil.length - 1);
+					if (avil[i].r === row && avil[i].c === col) {
+						makeMove(avil[i].r, avil[i].c);
+						game.steps.push(i);
+						const { grid, runs, newly } = contSim(root, game, SUBSQNT);
+						console.log(`Adding ${runs} (${runs - newly}) simulations of ${grid} x ${grid} games`);
+						console.log(show(n, leaf, 2)); // TODO TEMP
+						if (!evaluate(avil[i].r, avil[i].c)) {
+							if (game.ai) {
+								compPlayer(newNode); // AI's turn to move
+							}
+						}
+						break;
+					}
 				}
 			}
-		} catch (error) {
-			const msg = `${error}`;
-			if (!msg.includes('already occupied')) {
-				console.log(msg);
+		} else {
+			makeMove(row, col);
+			if (game.ai) game.steps.push(index);
+			if (!evaluate(row, col)) {
+				if (game.ai) {
+					compPlayer(leaf); // AI's turn to move
+				}
 			}
 		}
 	}
 }
 
 // AI player's turn
-function compPlayer() {
+function compPlayer(leaf) {
 	if (game.player !== 0) {
-		const { index, indexNext, leaf } = track(root, steps, (moves.length > 0) ? moves[moves.length - 1] : undefined);
-		const n = root.grid;
+		const n = game.grid();
 
-		if (index !== undefined && index < 0) {
-			// TODO TEMP: should start a simulation from the current node
-			throw new Error(`Unexplored move ${JSON.stringify(moves[moves.length - 1])} on:\n${show(n, leaf, 2)}`);
-		} else if (indexNext < 0) {
-			// TODO TEMP: should start a simulation from the current node
-			throw new Error(`No move available on:\n${show(n, leaf, 1)}`);
+		if (leaf.next.filter(t => t !== undefined).length < leaf.next.length) {
+			// NOTE: Since no node under leaf, should add a node under leaf (by chooseMove()), afterward then can do sim()
+			// NOTE: What about if leaf is partially explored? should expand instead of UCB?
+			console.log(`No move available at ${leaf.show(n)}`);
+
+			const move = chooseMove(game, leaf);
+			makeMove(move.r, move.c);
+			const { index } = leaf.add(n, move.r, move.c, move.m);
+			game.steps.push(index);
+			const { grid, runs, newly } = contSim(root, game, SUBSQNT);
+			if (evaluate(move.r, move.c)) return;
+			console.log(`Adding ${runs} (${runs - newly}) simulations of ${grid} x ${grid} games`);
+			console.log(show(n, leaf, 2)); // TODO TEMP
 		} else {
-			if (index !== undefined) steps.push(index);
-			steps.push(indexNext);
-			if (makeMove(leaf.row(n), leaf.col(n))) {
-				console.log(`[leaf] SELECT: ${leaf.show(n)}`);
-			}
+			const indexNext = leaf.ucb();
+			makeMove(leaf.next[indexNext].row(n), leaf.next[indexNext].col(n));
+			game.steps.push(indexNext);
+			if (evaluate(leaf.next[indexNext].row(n), leaf.next[indexNext].col(n))) return;
+			console.log(`[comp] select: ${leaf.next[indexNext].show(n)}`);
 		}
 	}
 }
 
-function idle() {
+function worker() {
 	if (RUNS <= 0) {
 		clearInterval(thread);
 		console.log('Timer stopped');
@@ -138,7 +155,7 @@ function idle() {
 		if (RUNS > 0) {
 			console.log(`RUNS: ${RUNS}/${TOTRUNS}`);
 			idled = 0;
-			const { grid, runs, newly } = simulate(root.grid, SUBSQNT, root);
+			const { grid, runs, newly } = startSim(root, game.grid(), SUBSQNT);
 			RUNS -= runs;
 			if (RUNS <= 0) {
 				console.log(`Ran ${runs} (${runs - newly}) simulations of ${grid} x ${grid} games (RUNS: ${RUNS})`);
@@ -165,11 +182,11 @@ function newgame() {
 
 	// Initialize the Game Status object
 	game = new Game(n);
-	game['single'] = document.getElementById('pnumb').checked; // pnumb checked means 1 player, unchecked 2 players
+	game.ai = document.getElementById('pnumb').checked; // pnumb checked means 1 player, unchecked 2 players
 
 	// Initialize the game moves
 	moves = [];
-	steps = [];
+	game.steps = [];
 
 	// Build the game board
 	let board = document.getElementById('board');
@@ -204,29 +221,26 @@ function newgame() {
 	game.nextTurn(); // start game
 
 	idled = 0;
-	if (game.single) {
+	if (game.ai) {
 		if (root && n !== root.grid) {
 			RUNS = TOTRUNS;
 			root = undefined;
 		}
 		if (!!root) {
-			if (RUNS > 0)
-				console.log(`Simulation running: ${RUNS}/${TOTRUNS}`);
-			else
-				console.log(`Simulation finished: ${RUNS}/${TOTRUNS}`);
+			console.log(`Simulation ${(RUNS > 0) ? 'running' : 'finished'}: ${RUNS}/${TOTRUNS}`);
 		} else {
-			const { tree, grid, runs, newly } = simulate(n, INITIAL, root);
+			const { tree, grid, runs, newly } = startSim(root, n, INITIAL);
 			RUNS -= runs;
 			console.log(`Ran ${runs} (${runs - newly}) simulations of ${grid} x ${grid} games`);
 			console.log(show(n, tree, 1));
 			root = tree;
 
 			idled = 1;
-			thread = setInterval(() => idle(), INTERVAL * 1000);
+			// thread = setInterval(() => worker(), INTERVAL * 1000); TODO HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		}
 
 		if (document.getElementById('ai1st').checked) {
-			compPlayer();
+			compPlayer(root);
 		}
 	}
 }
