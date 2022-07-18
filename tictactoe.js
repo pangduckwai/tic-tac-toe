@@ -10,7 +10,7 @@ let moves = [];
 // Background simulation runs
 // const INTERVAL = 1; // 1 second timer interval
 // const IDLE = 2; // 2 seconds
-const INITIAL = 100000; // initial simulation runs
+const INITIAL = 500000; // initial simulation runs
 const SUBSQNT = 50000; // subsequent simulation runs
 // const TOTRUNS = 1000000; // Total number of runs
 // let RUNS = TOTRUNS; // total simulation runs
