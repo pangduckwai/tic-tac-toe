@@ -20,7 +20,7 @@ const SUBSQNT = 50000; // subsequent simulation runs
 // Event handler for the mouse entering a cell
 function mouseentered(row, col) {
 	if (game.cells[row][col] === 0) {
-		const eid = `c${row}-${col}`;
+		const eid = `tictactoe-${row}-${col}`;
 		if (game.player > 0) {
 			document.getElementById(eid).textContent = 'O';
 		} else {
@@ -32,7 +32,7 @@ function mouseentered(row, col) {
 
 // Event handler for the mouse leaving a cell
 function mouseouted(row, col) {
-	const eid = `c${row}-${col}`;
+	const eid = `tictactoe-${row}-${col}`;
 	if (game.cells[row][col] === 0) {
 		document.getElementById(eid).textContent = ' ';
 		document.getElementById(eid).setAttribute("style", "color:#424242");
@@ -43,7 +43,7 @@ function mouseouted(row, col) {
 function makeMove(row, col) {
 	game.makeMove(row, col);
 
-	const eid = `c${row}-${col}`;
+	const eid = `tictactoe-${row}-${col}`;
 	if (game.player > 0) {
 		document.getElementById(eid).textContent = 'O';
 	} else {
@@ -56,15 +56,15 @@ function makeMove(row, col) {
 function evaluate(row, col) {
 	const conclusion = game.evaluate(row, col);
 	if (conclusion < 0) {
-		document.getElementById('message').textContent = ' "X" won';
+		dialogShow(' "X" won', true);
 		return true;
 	} else if (conclusion > 0) {
-		document.getElementById('message').textContent = ' "O" won';
+		dialogShow(' "O" won', true);
 		return true;
 	}
 
 	if (!game.nextTurn()) {
-		document.getElementById('message').textContent = ' Draw';
+		dialogShow(' Draw', true);
 		return true;
 	}
 	return false;
@@ -75,8 +75,6 @@ function clicked(row, col) {
 	const n = game.grid();
 	// idled = 0; // Indicate the user just clicked something, reset the idel timer. // TODO: disabled for the moment
 	if (game.player !== 0) { // game.player === 0 if game is not yet started or already finished
-		document.getElementById('message').innerHTML = '<div id="message" class="p">&nbsp;</div>';;
-
 		if (game.ai) moves.push({ player: game.player, row, col }); // this is the move just made
 		const { index, leaf } = (game.ai) ? track(root, game, (moves.length > 0) ? moves[moves.length - 1] : undefined) : { index: undefined, leaf: undefined };
 		if (index && index < 0) {
@@ -139,6 +137,20 @@ function compPlayer(leaf) {
 	}
 }
 
+function dialogShow(msg, n) {
+	document.getElementById('tictactoe-msg').innerHTML = msg; //`<div>${msg}</div>`;
+	if (n) {
+		document.getElementById('tictactoe-new').style.display = "block";
+	} else {
+		document.getElementById('tictactoe-new').style.display = "none";
+	}
+	document.getElementById('tictactoe-dialog').style.display = "block";
+}
+
+function dialogHide() {
+	document.getElementById('tictactoe-dialog').style.display = "none";
+}
+
 // TODO: disabled for the moment
 // function worker() {
 // 	if (RUNS <= 0) {
@@ -164,58 +176,67 @@ function compPlayer(leaf) {
 // 	}
 // }
 
-function newgame() {
-	let n = document.getElementById('bsize').value;
-	// limit the board size to 3x3 to 9x9
-	if (n < 3) {
-		n = 3;
-		document.getElementById('bsize').value = 3;
-	} else if (n > 9) {
-		n = 9;
-		document.getElementById('bsize').value = 9;
-	}
+// /**
+//  * Build new game board
+//  * @param {Node} board element to contain the game board
+//  * @param {boolean} v true to add event handlers
+//  * @param {number} n board size
+//  */
+// function buildBoard(board, v, n) {
+// 	board.innerHTML = '';
 
-	// Update html
-	document.getElementById('message').innerHTML = '<div id="message" class="p">New game started</div>'; // Refrest game message
-	document.getElementById('boardcss').innerHTML = `#board {grid-template-columns: repeat(${n}, 70px);}\n#left {width: ${80*n+10}px;}`; // dynamic part of the CSS
+// 	let r = -1;
+// 	let c;
+// 	for (let i = 0; i < n * n; i ++) {
+// 		if ((i % n) === 0) { // Note the modular operation i % n
+// 			r ++;
+// 			c = 0;
+// 		}
+
+// 		// Initialize the cell's corresponding value in the Game Status object
+// 		const row = r;
+// 		const col = c;
+// 		const eid = `tictactoe-${row}-${col}`;
+
+// 		// Create the cell in the html DOM
+// 		const tmpl = document.createElement('template');
+// 		tmpl.innerHTML = `<div id="${eid}" class="tictactoe-cell">&nbsp;</div>`;
+// 		board.appendChild(tmpl.content.firstChild);
+
+// 		if (v) {
+// 			// Add event handlers to the new cell
+// 			const cell = document.getElementById(eid);
+// 			cell.onclick = (_) => clicked(row, col);
+// 			cell.onmouseenter = (_) => mouseentered(row, col);
+// 			cell.onmouseout = (_) => mouseouted(row, col);
+// 		}
+
+// 		c ++;
+// 	}
+// }
+
+/**
+ * Start a new game
+ * @param {number} n board size
+ * @param {boolean} p is single player
+ * @param {boolean} a AI move first
+ */
+function newgame(n, p, a) {
+	dialogShow('Loading...', false);
+	let board = document.getElementById('tictactoe-board');
+	if (board === null) {
+		console.log(`Game board not found`);
+		return;
+	}
+	buildBoard(board, true, n);
 
 	// Initialize the Game Status object
 	game = new Game(n);
-	game.ai = document.getElementById('pnumb').checked; // pnumb checked means 1 player, unchecked 2 players
+	game.ai = p;
 
 	// Initialize the game moves
 	moves = [];
 	game.steps = [];
-
-	// Build the game board
-	let board = document.getElementById('board');
-	board.innerHTML = '';
-	let r = -1;
-	let c;
-	for (let i = 0; i < n * n; i ++) {
-		if ((i % n) === 0) { // Note the modular operation i % n
-			r ++;
-			c = 0;
-		}
-
-		// Initialize the cell's corresponding value in the Game Status object
-		const row = r;
-		const col = c;
-		const eid = `c${row}-${col}`;
-
-		// Create the cell in the html DOM
-		const tmpl = document.createElement('template');
-		tmpl.innerHTML = `<div id="${eid}" class="cell">&nbsp;</div>`;
-		board.appendChild(tmpl.content.firstChild);
-
-		// Add event handlers to the new cell
-		const cell = document.getElementById(eid);
-		cell.onclick = (_) => clicked(row, col);
-		cell.onmouseenter = (_) => mouseentered(row, col);
-		cell.onmouseout = (_) => mouseouted(row, col);
-
-		c ++;
-	}
 
 	game.nextTurn(); // start game
 
@@ -226,41 +247,168 @@ function newgame() {
 			root = undefined;
 		}
 
-		if (!!root) { // If the m.c. tree is not undefined, don't need to do anything
-		 	// console.log(`Simulation ${(RUNS > 0) ? 'running' : 'finished'}: ${RUNS}/${TOTRUNS}`);
-		} else { // Otherwise build a new m.c. tree
-			const { tree, grid, runs, newly } = startSim(root, n, INITIAL);
-			// RUNS -= runs; // TODO: disabled for the moment
-			console.log(`Ran ${runs} (${runs - newly}) simulations of ${grid} x ${grid} games`);
-			// console.log(show(n, tree, 1));
-			root = tree;
+		setTimeout(() => {
+			if (!!root) { // If the m.c. tree is not undefined, don't need to do anything
+				// console.log(`Simulation ${(RUNS > 0) ? 'running' : 'finished'}: ${RUNS}/${TOTRUNS}`);
+			} else { // Otherwise build a new m.c. tree
+				const { tree, grid, runs, newly } = startSim(root, n, INITIAL);
+				// RUNS -= runs; // TODO: disabled for the moment
+				console.log(`Ran ${runs} (${runs - newly}) simulations of ${grid} x ${grid} games`);
+				// console.log(show(n, tree, 1));
+				root = tree;
 
-			// idled = 1; // TODO: disabled for the moment
-			// thread = setInterval(() => worker(), INTERVAL * 1000); // TODO: disabled for the moment
-		}
+				// idled = 1; // TODO: disabled for the moment
+				// thread = setInterval(() => worker(), INTERVAL * 1000); // TODO: disabled for the moment
+			}
 
-		if (document.getElementById('ai1st').checked) {
-			compPlayer(root); // if the AI should move first
-		}
+			if (a) {
+				compPlayer(root); // if the AI should move first
+			}
+			dialogHide();
+		}, 1);
+	} else {
+		dialogHide();
 	}
 }
 
-function init() {
-	document.getElementById('new').onclick = () => newgame(); // Add event handler for the 'New game' button
-	document.getElementById('bsize').value = 3; // default 3x3 game board
-	document.getElementById('pnumb').checked = true; // default to 1 players game
-	document.getElementById('ai1st').checked = false; // default to human first
-	document.getElementById('ai1st').disabled = false; // default to human first
-
-	document.getElementById('bsize').onchange = () => document.getElementById('message').innerHTML = '<div id="message" class="p">&nbsp;</div>';;
-
-	document.getElementById('ai1st').onchange = () => document.getElementById('message').innerHTML = '<div id="message" class="p">&nbsp;</div>';;
-
-	document.getElementById('pnumb').onchange = () => {
-		document.getElementById('message').innerHTML = '<div id="message" class="p">&nbsp;</div>';;
-		if (!document.getElementById('pnumb').checked) document.getElementById('ai1st').checked = false;
-		document.getElementById('ai1st').disabled = !document.getElementById('pnumb').checked;
+/**
+ * Initialize page
+ * @param {string} id element ID to attach the game board
+ * @param {number} n board size
+ * @param {number} z cell size
+ * @param {number} g space size between cells
+ * @param {number} f font size (for X and O) inside cells
+ */
+function init(id, n, z, g, f) {
+	// limit the board size to 3x3 to 9x9
+	if (n < 3) {
+		n = 3;
+		// document.getElementById('bsize').value = 3;
+	} else if (n > 9) {
+		n = 9;
+		// document.getElementById('bsize').value = 9;
 	}
+
+	let content = document.getElementById(id);
+	if (content === null) {
+		console.log(`Element '${id}' not found`);
+		return;
+	}
+	content.innerHTML = '';
+
+	let board = document.createElement('div');
+	board.setAttribute('id', 'tictactoe-board');
+	board.setAttribute('style', `display:grid;gap:${g}px;grid-template-columns:repeat(${n},${z}px);grid-auto-rows:${z}px;padding-top:${(g+10)/2};padding-bottom:${(g+10)/2};margin-left:${(g+10)/2};`);
+	buildBoard(board, false, n);
+
+	let dialog = document.createElement('div');
+	dialog.setAttribute('id', 'tictactoe-dialog');
+	dialog.setAttribute('class', 'tictactoe-dialog');
+	dialog.innerHTML = '<div class="tictactoe-dialog-content"><div id="tictactoe-msg">&nbsp;</div><button id="tictactoe-new">New game</button></div>';
+
+	let element = document.createElement('div');
+	element.setAttribute('style', `position:relative;width:${(z+g)*n+10}px;font-size:${f}px;`);
+	element.appendChild(dialog);
+	element.appendChild(board);
+	content.appendChild(element);
+
+	dialogShow('Click to start', true);
 }
 
-window.onload = () => init();
+/**
+ * Initialize the TicTacToe object
+ * @param {string} id element ID to attach the game board
+ * @param {number} n board size
+ * @param {number} z cell size
+ * @param {number} g space size between cells
+ * @param {number} f font size (for X and O) inside cells
+ */
+ class TicTacToe {
+	constructor(
+		elm,
+		n,
+		z, g, f
+	) {
+		if (n < 3 || n > 9) throw 'Supported board size: 3x3 to 9x9';
+		this.side = n;
+
+		this.canvas = document.getElementById(elm);
+		if (this.canvas === null) throw `Element '${elm}' not found`;
+		this.canvas.innerHTML = '';
+
+		this.cell = z;
+		this.gap = g;
+		this.font = f;
+		this.ai = true; // default - single player
+		this.first = false; // default - human move first
+
+		this.board = document.createElement('div');
+		this.board.setAttribute('id', 'tictactoe-board');
+		this.board.setAttribute('style', `display:grid;gap:${g}px;grid-template-columns:repeat(${n},${z}px);grid-auto-rows:${z}px;padding-top:${(g+10)/2};padding-bottom:${(g+10)/2};margin-left:${(g+10)/2};`);
+		this.buildBoard(false);
+
+		this.dialog = document.createElement('div');
+		this.dialog.setAttribute('id', 'tictactoe-dialog');
+		this.dialog.setAttribute('class', 'tictactoe-dialog');
+		this.dialog.innerHTML = '<div class="tictactoe-dialog-content"><div id="tictactoe-msg">&nbsp;</div><button id="tictactoe-new">New game</button></div>';
+
+		let element = document.createElement('div');
+		element.setAttribute('style', `position:relative;width:${(z+g)*n+10}px;font-size:${f}px;`);
+		element.appendChild(this.dialog);
+		element.appendChild(this.board);
+		this.canvas.appendChild(element);
+
+		this.dialogShow('Click to start', true);
+	}
+
+	dialogShow(msg, n) {
+		document.getElementById('tictactoe-msg').innerHTML = msg; //`<div>${msg}</div>`;
+		if (n) {
+			document.getElementById('tictactoe-new').style.display = "block";
+		} else {
+			document.getElementById('tictactoe-new').style.display = "none";
+		}
+		this.dialog.style.display = "block";
+	}
+
+	dialogHide() {
+		this.dialog.style.display = "none";
+	}
+
+	/**
+	 * Build new game board
+	 * @param {boolean} v true to add event handlers
+	 */
+	buildBoard(v) {
+		this.board.innerHTML = '';
+	
+		let r = -1;
+		let c;
+		for (let i = 0; i < this.side * this.side; i ++) {
+			if ((i % this.side) === 0) { // Note the modular operation i % n
+				r ++;
+				c = 0;
+			}
+	
+			// Initialize the cell's corresponding value in the Game Status object
+			const row = r;
+			const col = c;
+			const eid = `tictactoe-${row}-${col}`;
+	
+			// Create the cell in the html DOM
+			const tmpl = document.createElement('template');
+			tmpl.innerHTML = `<div id="${eid}" class="tictactoe-cell">&nbsp;</div>`;
+			this.board.appendChild(tmpl.content.firstChild);
+	
+			if (v) {
+				// Add event handlers to the new cell
+				const cell = document.getElementById(eid);
+				cell.onclick = (_) => clicked(row, col);
+				cell.onmouseenter = (_) => mouseentered(row, col);
+				cell.onmouseout = (_) => mouseouted(row, col);
+			}
+	
+			c ++;
+		}
+	}
+}
