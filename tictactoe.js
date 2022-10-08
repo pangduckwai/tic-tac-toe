@@ -215,164 +215,132 @@ function dialogHide() {
 // 	}
 // }
 
-/**
- * Start a new game
- * @param {number} n board size
- * @param {boolean} p is single player
- * @param {boolean} a AI move first
- */
-function newgame(n, p, a) {
-	dialogShow('Loading...', false);
-	let board = document.getElementById('tictactoe-board');
-	if (board === null) {
-		console.log(`Game board not found`);
-		return;
-	}
-	buildBoard(board, true, n);
+// /**
+//  * Start a new game
+//  * @param {number} n board size
+//  * @param {boolean} p is single player
+//  * @param {boolean} a AI move first
+//  */
+// function newgame(n, p, a) {
+// 	dialogShow('Loading...', false);
+// 	let board = document.getElementById('tictactoe-board');
+// 	if (board === null) {
+// 		console.log(`Game board not found`);
+// 		return;
+// 	}
+// 	buildBoard(board, true, n);
 
-	// Initialize the Game Status object
-	game = new Game(n);
-	game.ai = p;
+// 	// Initialize the Game Status object
+// 	game = new Game(n);
+// 	game.ai = p;
 
-	// Initialize the game moves
-	moves = [];
-	game.steps = [];
+// 	// Initialize the game moves
+// 	moves = [];
+// 	game.steps = [];
 
-	game.nextTurn(); // start game
+// 	game.nextTurn(); // start game
 
-	// idled = 0; // TODO: disabled for the moment
-	if (game.ai) {
-		if (root && n !== root.grid) { // Discard the m.c. tree if the player change the game board size
-			// RUNS = TOTRUNS; // TODO: disabled for the moment
-			root = undefined;
-		}
+// 	// idled = 0; // TODO: disabled for the moment
+// 	if (game.ai) {
+// 		if (root && n !== root.grid) { // Discard the m.c. tree if the player change the game board size
+// 			// RUNS = TOTRUNS; // TODO: disabled for the moment
+// 			root = undefined;
+// 		}
 
-		setTimeout(() => {
-			if (!!root) { // If the m.c. tree is not undefined, don't need to do anything
-				// console.log(`Simulation ${(RUNS > 0) ? 'running' : 'finished'}: ${RUNS}/${TOTRUNS}`);
-			} else { // Otherwise build a new m.c. tree
-				const { tree, grid, runs, newly } = startSim(root, n, INITIAL);
-				// RUNS -= runs; // TODO: disabled for the moment
-				console.log(`Ran ${runs} (${runs - newly}) simulations of ${grid} x ${grid} games`);
-				// console.log(show(n, tree, 1));
-				root = tree;
+// 		setTimeout(() => {
+// 			if (!!root) { // If the m.c. tree is not undefined, don't need to do anything
+// 				// console.log(`Simulation ${(RUNS > 0) ? 'running' : 'finished'}: ${RUNS}/${TOTRUNS}`);
+// 			} else { // Otherwise build a new m.c. tree
+// 				const { tree, grid, runs, newly } = startSim(root, n, INITIAL);
+// 				// RUNS -= runs; // TODO: disabled for the moment
+// 				console.log(`Ran ${runs} (${runs - newly}) simulations of ${grid} x ${grid} games`);
+// 				// console.log(show(n, tree, 1));
+// 				root = tree;
 
-				// idled = 1; // TODO: disabled for the moment
-				// thread = setInterval(() => worker(), INTERVAL * 1000); // TODO: disabled for the moment
-			}
+// 				// idled = 1; // TODO: disabled for the moment
+// 				// thread = setInterval(() => worker(), INTERVAL * 1000); // TODO: disabled for the moment
+// 			}
 
-			if (a) {
-				compPlayer(root); // if the AI should move first
-			}
-			dialogHide();
-		}, 1);
-	} else {
-		dialogHide();
-	}
-}
+// 			if (a) {
+// 				compPlayer(root); // if the AI should move first
+// 			}
+// 			dialogHide();
+// 		}, 1);
+// 	} else {
+// 		dialogHide();
+// 	}
+// }
 
-/**
- * Initialize page
- * @param {string} id element ID to attach the game board
- * @param {number} n board size
- * @param {number} z cell size
- * @param {number} g space size between cells
- * @param {number} f font size (for X and O) inside cells
- */
-function init(id, n, z, g, f) {
-	// limit the board size to 3x3 to 9x9
-	if (n < 3) {
-		n = 3;
-		// document.getElementById('bsize').value = 3;
-	} else if (n > 9) {
-		n = 9;
-		// document.getElementById('bsize').value = 9;
-	}
-
-	let content = document.getElementById(id);
-	if (content === null) {
-		console.log(`Element '${id}' not found`);
-		return;
-	}
-	content.innerHTML = '';
-
-	let board = document.createElement('div');
-	board.setAttribute('id', 'tictactoe-board');
-	board.setAttribute('style', `display:grid;gap:${g}px;grid-template-columns:repeat(${n},${z}px);grid-auto-rows:${z}px;padding-top:${(g+10)/2};padding-bottom:${(g+10)/2};margin-left:${(g+10)/2};`);
-	buildBoard(board, false, n);
-
-	let dialog = document.createElement('div');
-	dialog.setAttribute('id', 'tictactoe-dialog');
-	dialog.setAttribute('class', 'tictactoe-dialog');
-	dialog.innerHTML = '<div class="tictactoe-dialog-content"><div id="tictactoe-msg">&nbsp;</div><button id="tictactoe-new">New game</button></div>';
-
-	let element = document.createElement('div');
-	element.setAttribute('style', `position:relative;width:${(z+g)*n+10}px;font-size:${f}px;`);
-	element.appendChild(dialog);
-	element.appendChild(board);
-	content.appendChild(element);
-
-	dialogShow('Click to start', true);
-}
-
-/**
- * Initialize the TicTacToe object
- * @param {string} id element ID to attach the game board
- * @param {number} n board size
- * @param {number} z cell size
- * @param {number} g space size between cells
- * @param {number} f font size (for X and O) inside cells
- */
- class TicTacToe {
+class TicTacToe {
+	/**
+	 * Initialize the TicTacToe object
+	 * @param {string} elm element ID to attach the game board
+	 * @param {number} size board size, default is 3
+	 * @param {number} player number of players, default is 1
+	 * @param {boolean} human human player move first
+	 * @param {number} font font size (for X and O) inside cells
+	 * @param {number} cell cell size
+	 * @param {number} gap space size between cells
+	 */
 	constructor(
 		elm,
-		n,
-		z, g, f
+		size, player, human,
+		font, cell, gap,
 	) {
-		if (n < 3 || n > 9) throw 'Supported board size: 3x3 to 9x9';
-		this.side = n;
-
+		if (elm === undefined) throw 'Must provide an element to contain the game board';
 		this.canvas = document.getElementById(elm);
 		if (this.canvas === null) throw `Element '${elm}' not found`;
 		this.canvas.innerHTML = '';
 
-		this.cell = z;
-		this.gap = g;
-		this.font = f;
-		this.ai = true; // default - single player
-		this.first = false; // default - human move first
+		this.setBoardSize((size === undefined) ? 3 : size);
+		this.setPlayerNum((player === undefined) ? 1 : player);
+		this.setHumanFirst((human === undefined) ? true : human);
+
+		this.font = (font === undefined) ? 21 : font;
+		this.cell = (cell === undefined) ? 42 : cell;
+		this.gap  = (gap  === undefined) ? 4  : gap;
 
 		this.board = document.createElement('div');
 		this.board.setAttribute('id', 'tictactoe-board');
-		this.board.setAttribute('style', `display:grid;gap:${g}px;grid-template-columns:repeat(${n},${z}px);grid-auto-rows:${z}px;padding-top:${(g+10)/2};padding-bottom:${(g+10)/2};margin-left:${(g+10)/2};`);
+		this.board.setAttribute('style', `display:grid;gap:${this.gap}px;grid-template-columns:repeat(${this.size},${this.cell}px);grid-auto-rows:${this.cell}px;padding-top:${(this.gap+10)/2};padding-bottom:${(this.gap+10)/2};margin-left:${(this.gap+10)/2};`);
 		this.buildBoard(false);
 
-		this.dialog = document.createElement('div');
-		this.dialog.setAttribute('id', 'tictactoe-dialog');
-		this.dialog.setAttribute('class', 'tictactoe-dialog');
-		this.dialog.innerHTML = '<div class="tictactoe-dialog-content"><div id="tictactoe-msg">&nbsp;</div><button id="tictactoe-new">New game</button></div>';
+		let dialog = document.createElement('div');
+		dialog.setAttribute('id', 'tictactoe-dialog');
+		dialog.setAttribute('class', 'tictactoe-dialog');
+		dialog.innerHTML = '<div class="tictactoe-dialog-content"><div id="tictactoe-msg">&nbsp;</div><button id="tictactoe-new">New game</button></div>';
 
 		let element = document.createElement('div');
-		element.setAttribute('style', `position:relative;width:${(z+g)*n+10}px;font-size:${f}px;`);
-		element.appendChild(this.dialog);
+		element.setAttribute('style', `position:relative;width:${(this.cell+this.gap)*this.size+10}px;font-size:${this.font}px;`);
+		element.appendChild(dialog);
 		element.appendChild(this.board);
 		this.canvas.appendChild(element);
 
-		this.dialogShow('Click to start', true);
+		document.getElementById('tictactoe-new').onclick = () => this.newGame();
+
+		dialogShow('Click to start', true);
 	}
 
-	dialogShow(msg, n) {
-		document.getElementById('tictactoe-msg').innerHTML = msg; //`<div>${msg}</div>`;
-		if (n) {
-			document.getElementById('tictactoe-new').style.display = "block";
-		} else {
-			document.getElementById('tictactoe-new').style.display = "none";
+	setBoardSize(n) {
+		if (n < 3 || n > 9) throw 'Supported board size: 3x3 to 9x9';
+		this.size = n;
+	}
+
+	setPlayerNum(n) {
+		switch (n) {
+			case 1:
+				this.ai = true;
+				break;
+			case 2:
+				this.ai = false;
+				break;
+			default:
+				throw 'Number of players can either be 1 or 2 only'
 		}
-		this.dialog.style.display = "block";
 	}
 
-	dialogHide() {
-		this.dialog.style.display = "none";
+	setHumanFirst(b) {
+		this.first = !b;
 	}
 
 	/**
@@ -384,8 +352,8 @@ function init(id, n, z, g, f) {
 	
 		let r = -1;
 		let c;
-		for (let i = 0; i < this.side * this.side; i ++) {
-			if ((i % this.side) === 0) { // Note the modular operation i % n
+		for (let i = 0; i < this.size * this.size; i ++) {
+			if ((i % this.size) === 0) { // Note the modular operation i % n
 				r ++;
 				c = 0;
 			}
@@ -409,6 +377,51 @@ function init(id, n, z, g, f) {
 			}
 	
 			c ++;
+		}
+	}
+
+	newGame() {
+		dialogShow('Loading...', false);
+		this.buildBoard(true);
+
+		// Initialize the Game Status object
+		game = new Game(this.size);
+		game.ai = this.ai;
+
+		// Initialize the game moves
+		moves = [];
+		game.steps = [];
+
+		game.nextTurn(); // start game
+
+		// idled = 0; // TODO: disabled for the moment
+		if (game.ai) {
+			if (root && this.size !== root.grid) { // Discard the m.c. tree if the player change the game board size
+				// RUNS = TOTRUNS; // TODO: disabled for the moment
+				root = undefined;
+			}
+
+			setTimeout(() => {
+				if (!!root) { // If the m.c. tree is not undefined, don't need to do anything
+					// console.log(`Simulation ${(RUNS > 0) ? 'running' : 'finished'}: ${RUNS}/${TOTRUNS}`);
+				} else { // Otherwise build a new m.c. tree
+					const { tree, grid, runs, newly } = startSim(root, this.size, INITIAL);
+					// RUNS -= runs; // TODO: disabled for the moment
+					console.log(`Ran ${runs} (${runs - newly}) simulations of ${grid} x ${grid} games`);
+					// console.log(show(n, tree, 1));
+					root = tree;
+
+					// idled = 1; // TODO: disabled for the moment
+					// thread = setInterval(() => worker(), INTERVAL * 1000); // TODO: disabled for the moment
+				}
+
+				if (this.first) {
+					compPlayer(root); // if the AI should move first
+				}
+				dialogHide();
+			}, 1);
+		} else {
+			dialogHide();
 		}
 	}
 }
