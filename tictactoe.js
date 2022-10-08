@@ -10,7 +10,7 @@ let moves = [];
 // Background simulation runs
 // const INTERVAL = 1; // 1 second timer interval
 // const IDLE = 2; // 2 seconds
-const INITIAL = 500000; // initial simulation runs
+const INITIAL = 1000000; // initial simulation runs
 const SUBSQNT = 50000; // subsequent simulation runs
 // const TOTRUNS = 1000000; // Total number of runs
 // let RUNS = TOTRUNS; // total simulation runs
@@ -87,7 +87,7 @@ function clicked(row, col) {
 						makeMove(avil[i].r, avil[i].c);
 						game.steps.push(i);
 						const { grid, runs, newly } = contSim(root, game, SUBSQNT);
-						// console.log(`Adding ${runs} (${runs - newly}) simulations of ${grid} x ${grid} games`);
+						console.log(`Adding ${runs} (${runs - newly}) simulations of ${grid} x ${grid} games`);
 						if (!evaluate(avil[i].r, avil[i].c)) {
 							if (game.ai) {
 								compPlayer(newNode); // AI's turn to move
@@ -125,14 +125,14 @@ function compPlayer(leaf) {
 			game.steps.push(index);
 			const { grid, runs, newly } = contSim(root, game, SUBSQNT);
 			if (evaluate(move.r, move.c)) return;
-			// console.log(`Adding ${runs} (${runs - newly}) simulations of ${grid} x ${grid} games`);
+			console.log(`Adding ${runs} (${runs - newly}) simulations of ${grid} x ${grid} games`);
 		} else {
 			// Find a fully explored node, normal operation
 			const indexNext = leaf.ucb();
 			makeMove(leaf.next[indexNext].row(n), leaf.next[indexNext].col(n));
 			game.steps.push(indexNext);
 			if (evaluate(leaf.next[indexNext].row(n), leaf.next[indexNext].col(n))) return;
-			// console.log(`[comp] select: ${leaf.next[indexNext].show(n)}`);
+			console.log(`[comp] select: ${leaf.next[indexNext].show(n)}`);
 		}
 	}
 }
@@ -173,101 +173,6 @@ function dialogHide() {
 // 				console.log(show(root.gird, root, 1));
 // 			}
 // 		}
-// 	}
-// }
-
-// /**
-//  * Build new game board
-//  * @param {Node} board element to contain the game board
-//  * @param {boolean} v true to add event handlers
-//  * @param {number} n board size
-//  */
-// function buildBoard(board, v, n) {
-// 	board.innerHTML = '';
-
-// 	let r = -1;
-// 	let c;
-// 	for (let i = 0; i < n * n; i ++) {
-// 		if ((i % n) === 0) { // Note the modular operation i % n
-// 			r ++;
-// 			c = 0;
-// 		}
-
-// 		// Initialize the cell's corresponding value in the Game Status object
-// 		const row = r;
-// 		const col = c;
-// 		const eid = `tictactoe-${row}-${col}`;
-
-// 		// Create the cell in the html DOM
-// 		const tmpl = document.createElement('template');
-// 		tmpl.innerHTML = `<div id="${eid}" class="tictactoe-cell">&nbsp;</div>`;
-// 		board.appendChild(tmpl.content.firstChild);
-
-// 		if (v) {
-// 			// Add event handlers to the new cell
-// 			const cell = document.getElementById(eid);
-// 			cell.onclick = (_) => clicked(row, col);
-// 			cell.onmouseenter = (_) => mouseentered(row, col);
-// 			cell.onmouseout = (_) => mouseouted(row, col);
-// 		}
-
-// 		c ++;
-// 	}
-// }
-
-// /**
-//  * Start a new game
-//  * @param {number} n board size
-//  * @param {boolean} p is single player
-//  * @param {boolean} a AI move first
-//  */
-// function newgame(n, p, a) {
-// 	dialogShow('Loading...', false);
-// 	let board = document.getElementById('tictactoe-board');
-// 	if (board === null) {
-// 		console.log(`Game board not found`);
-// 		return;
-// 	}
-// 	buildBoard(board, true, n);
-
-// 	// Initialize the Game Status object
-// 	game = new Game(n);
-// 	game.ai = p;
-
-// 	// Initialize the game moves
-// 	moves = [];
-// 	game.steps = [];
-
-// 	game.nextTurn(); // start game
-
-// 	// idled = 0; // TODO: disabled for the moment
-// 	if (game.ai) {
-// 		if (root && n !== root.grid) { // Discard the m.c. tree if the player change the game board size
-// 			// RUNS = TOTRUNS; // TODO: disabled for the moment
-// 			root = undefined;
-// 		}
-
-// 		setTimeout(() => {
-// 			if (!!root) { // If the m.c. tree is not undefined, don't need to do anything
-// 				// console.log(`Simulation ${(RUNS > 0) ? 'running' : 'finished'}: ${RUNS}/${TOTRUNS}`);
-// 			} else { // Otherwise build a new m.c. tree
-// 				const { tree, grid, runs, newly } = startSim(root, n, INITIAL);
-// 				// RUNS -= runs; // TODO: disabled for the moment
-// 				console.log(`Ran ${runs} (${runs - newly}) simulations of ${grid} x ${grid} games`);
-// 				// console.log(show(n, tree, 1));
-// 				root = tree;
-
-// 				// idled = 1; // TODO: disabled for the moment
-// 				// thread = setInterval(() => worker(), INTERVAL * 1000); // TODO: disabled for the moment
-// 			}
-
-// 			if (a) {
-// 				compPlayer(root); // if the AI should move first
-// 			}
-// 			dialogHide();
-// 		}, 1);
-// 	} else {
-// 		dialogHide();
 // 	}
 // }
 
