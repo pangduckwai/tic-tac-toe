@@ -1,12 +1,3 @@
-// Game Status
-let game;
-
-// m.c. tree
-let root;
-
-// Steps taken in the current game
-let moves = [];
-
 // Background simulation runs
 // const INTERVAL = 1; // 1 second timer interval
 // const IDLE = 2; // 2 seconds
@@ -16,140 +7,6 @@ const SUBSQNT = 100000; // subsequent simulation runs
 // let RUNS = TOTRUNS; // total simulation runs
 // let idled;
 // let thread;
-
-// Event handler for the mouse entering a cell
-function mouseentered(row, col) {
-	if (game.cells[row][col] === 0) {
-		const eid = `tictactoe-${row}-${col}`;
-		if (game.player > 0) {
-			document.getElementById(eid).textContent = 'O';
-		} else {
-			document.getElementById(eid).textContent = 'X';
-		}
-		document.getElementById(eid).setAttribute("style", "color:#a0a0a0");
-	}
-}
-
-// Event handler for the mouse leaving a cell
-function mouseouted(row, col) {
-	const eid = `tictactoe-${row}-${col}`;
-	if (game.cells[row][col] === 0) {
-		document.getElementById(eid).textContent = ' ';
-		document.getElementById(eid).setAttribute("style", "color:#424242");
-	}
-}
-
-// make a move and update the HTML
-function makeMove(row, col) {
-	game.makeMove(row, col);
-
-	const eid = `tictactoe-${row}-${col}`;
-	if (game.player > 0) {
-		document.getElementById(eid).textContent = 'O';
-	} else {
-		document.getElementById(eid).textContent = 'X';
-	}
-	document.getElementById(eid).setAttribute("style", "color:#424242"); // Make the color of 'O' or 'X' solid as visual clue
-}
-
-// check game status and update the HTML
-function evaluate(row, col) {
-	const conclusion = game.evaluate(row, col);
-	if (conclusion < 0) {
-		dialogShow(' "X" won', true);
-		return true;
-	} else if (conclusion > 0) {
-		dialogShow(' "O" won', true);
-		return true;
-	}
-
-	if (!game.nextTurn()) {
-		dialogShow(' Draw', true);
-		return true;
-	}
-	return false;
-}
-
-// Event handler for clicking a cell
-function clicked(row, col) {
-	const n = game.grid();
-	// idled = 0; // Indicate the user just clicked something, reset the idel timer. // TODO: disabled for the moment
-	if (game.player !== 0) { // game.player === 0 if game is not yet started or already finished
-		if (game.ai) moves.push({ player: game.player, row, col }); // this is the move just made
-		const { index, leaf } = (game.ai) ? track(root, game, (moves.length > 0) ? moves[moves.length - 1] : undefined) : { index: undefined, leaf: undefined };
-		if (index && index < 0) {
-			// The human player just made an unexplored move
-			const avil = game.availableMoves();
-			for (let i = 0; i < avil.length; i ++) {
-				if (leaf.next.filter(v => v !== undefined && v.row(n) === avil[i].r && v.col(n) === avil[i].c).length <= 0) {
-					const { newNode } = leaf.add(n, avil[i].r, avil[i].c, avil.length - 1);
-					if (avil[i].r === row && avil[i].c === col) {
-						makeMove(avil[i].r, avil[i].c);
-						game.steps.push(i);
-						const { grid, runs, newly } = contSim(root, game, SUBSQNT);
-						console.log(`Adding ${runs} (${runs - newly}) simulations of ${grid} x ${grid} games`);
-						if (!evaluate(avil[i].r, avil[i].c)) {
-							if (game.ai) {
-								compPlayer(newNode); // AI's turn to move
-							}
-						}
-						break;
-					}
-				}
-			}
-		} else {
-			// Found the corresponding node of the move the human player just made, normal operation
-			makeMove(row, col);
-			if (game.ai) game.steps.push(index);
-			if (!evaluate(row, col)) {
-				if (game.ai) {
-					compPlayer(leaf); // AI's turn to move
-				}
-			}
-		}
-	}
-}
-
-// AI player's turn
-function compPlayer(leaf) {
-	if (game.player !== 0) {
-		const n = game.grid();
-
-		if (leaf.next.filter(t => t !== undefined).length < leaf.next.length) {
-			// Unexplored and/or not fully explored node found
-			// NOTE: Since no node under leaf, should add a node under leaf (by chooseMove()), afterward then can do sim()
-			// NOTE: What about if leaf is partially explored? should expand instead of UCB?
-			const move = chooseMove(game, leaf);
-			makeMove(move.r, move.c);
-			const { index } = leaf.add(n, move.r, move.c, move.m);
-			game.steps.push(index);
-			const { grid, runs, newly } = contSim(root, game, SUBSQNT);
-			if (evaluate(move.r, move.c)) return;
-			console.log(`Adding ${runs} (${runs - newly}) simulations of ${grid} x ${grid} games`);
-		} else {
-			// Find a fully explored node, normal operation
-			const indexNext = leaf.ucb();
-			makeMove(leaf.next[indexNext].row(n), leaf.next[indexNext].col(n));
-			game.steps.push(indexNext);
-			if (evaluate(leaf.next[indexNext].row(n), leaf.next[indexNext].col(n))) return;
-			console.log(`[comp] select: ${leaf.next[indexNext].show(n)}`);
-		}
-	}
-}
-
-function dialogShow(msg, n) {
-	document.getElementById('tictactoe-msg').innerHTML = msg; //`<div>${msg}</div>`;
-	if (n) {
-		document.getElementById('tictactoe-new').style.display = "block";
-	} else {
-		document.getElementById('tictactoe-new').style.display = "none";
-	}
-	document.getElementById('tictactoe-dialog').style.display = "block";
-}
-
-function dialogHide() {
-	document.getElementById('tictactoe-dialog').style.display = "none";
-}
 
 // TODO: disabled for the moment
 // function worker() {
@@ -230,7 +87,7 @@ class TicTacToe {
 
 		document.getElementById('tictactoe-new').onclick = () => this.newGame();
 
-		dialogShow('Click to start', true);
+		this.dialogShow('Click to start', true);
 	}
 
 	setLogger(logger) {
@@ -280,6 +137,20 @@ class TicTacToe {
 		this.first = !b;
 	}
 
+	dialogShow(msg, n) {
+		document.getElementById('tictactoe-msg').innerHTML = msg; //`<div>${msg}</div>`;
+		if (n) {
+			document.getElementById('tictactoe-new').style.display = "block";
+		} else {
+			document.getElementById('tictactoe-new').style.display = "none";
+		}
+		document.getElementById('tictactoe-dialog').style.display = "block";
+	}
+	
+	dialogHide() {
+		document.getElementById('tictactoe-dialog').style.display = "none";
+	}
+
 	/**
 	 * Build new game board
 	 * @param {boolean} v true to add event handlers
@@ -308,9 +179,65 @@ class TicTacToe {
 			if (v) {
 				// Add event handlers to the new cell
 				const cell = document.getElementById(eid);
-				cell.onclick = (_) => clicked(row, col);
-				cell.onmouseenter = (_) => mouseentered(row, col);
-				cell.onmouseout = (_) => mouseouted(row, col);
+
+				cell.onmouseenter = (_) => {
+					if (this.game.cells[row][col] === 0) {
+						const eid = `tictactoe-${row}-${col}`;
+						if (this.game.player > 0) {
+							document.getElementById(eid).textContent = 'O';
+						} else {
+							document.getElementById(eid).textContent = 'X';
+						}
+						document.getElementById(eid).setAttribute("style", "color:#a0a0a0");
+					}
+				};
+
+				cell.onmouseout = (_) => {
+					const eid = `tictactoe-${row}-${col}`;
+					if (this.game.cells[row][col] === 0) {
+						document.getElementById(eid).textContent = ' ';
+						document.getElementById(eid).setAttribute("style", "color:#424242");
+					}
+				};
+
+				cell.onclick = (_) => {
+					const n = this.game.grid();
+					// idled = 0; // Indicate the user just clicked something, reset the idel timer. // TODO: disabled for the moment
+					if (this.game.player !== 0) { // game.player === 0 if game is not yet started or already finished
+						if (this.game.ai) this.moves.push({ player: this.game.player, row, col }); // this is the move just made
+						const { index, leaf } = (this.game.ai) ? track(this.root, this.game, (this.moves.length > 0) ? this.moves[this.moves.length - 1] : undefined) : { index: undefined, leaf: undefined };
+						if (index && index < 0) {
+							// The human player just made an unexplored move
+							const avil = this.game.availableMoves();
+							for (let i = 0; i < avil.length; i ++) {
+								if (leaf.next.filter(v => v !== undefined && v.row(n) === avil[i].r && v.col(n) === avil[i].c).length <= 0) {
+									const { newNode } = leaf.add(n, avil[i].r, avil[i].c, avil.length - 1);
+									if (avil[i].r === row && avil[i].c === col) {
+										this.makeMove(avil[i].r, avil[i].c);
+										this.game.steps.push(i);
+										const { grid, runs, newly } = contSim(this.root, this.game, SUBSQNT);
+										this.log(`Adding ${runs} (${runs - newly}) simulations of ${grid}x${grid} games`);
+										if (!this.evaluate(avil[i].r, avil[i].c)) {
+											if (this.game.ai) {
+												this.compPlayer(newNode); // AI's turn to move
+											}
+										}
+										break;
+									}
+								}
+							}
+						} else {
+							// Found the corresponding node of the move the human player just made, normal operation
+							this.makeMove(row, col);
+							if (this.game.ai) this.game.steps.push(index);
+							if (!this.evaluate(row, col)) {
+								if (this.game.ai) {
+									this.compPlayer(leaf); // AI's turn to move
+								}
+							}
+						}
+					}
+				}
 			}
 	
 			c ++;
@@ -318,48 +245,106 @@ class TicTacToe {
 	}
 
 	newGame() {
-		dialogShow('Loading...', false);
-		this.log(`Starting a ${this.size} x ${this.size} new game with ${this.ai ? 1 : 2} player${this.ai ? '' : 's'}${this.ai ? ` (${this.first ? 'Computer' : 'Player'} move first)` : ''}`);
+		this.dialogShow('Loading...', false);
+		this.log(`Starting a ${this.size}x${this.size} new game with ${this.ai ? 1 : 2} player${this.ai ? '' : 's'}${this.ai ? ` (${this.first ? 'Computer' : 'Player'} move first)` : ''}`);
 		this.buildBoard(true);
 
 		// Initialize the Game Status object
-		game = new Game(this.size);
-		game.ai = this.ai;
+		this.game = new Game(this.size);
+		this.game.ai = this.ai;
 
 		// Initialize the game moves
-		moves = [];
-		game.steps = [];
+		this.moves = [];
+		this.game.steps = [];
 
-		game.nextTurn(); // start game
+		this.game.nextTurn(); // start game
 
 		// idled = 0; // TODO: disabled for the moment
-		if (game.ai) {
-			if (root && this.size !== root.grid) { // Discard the m.c. tree if the player change the game board size
+		if (this.game.ai) {
+			if (this.root && this.size !== this.root.grid) { // Discard the m.c. tree if the player change the game board size
 				// RUNS = TOTRUNS; // TODO: disabled for the moment
-				root = undefined;
+				this.root = undefined;
 			}
 
 			setTimeout(() => {
-				if (!!root) { // If the m.c. tree is not undefined, don't need to do anything
+				if (!!this.root) { // If the m.c. tree is not undefined, don't need to do anything
 					// console.log(`Simulation ${(RUNS > 0) ? 'running' : 'finished'}: ${RUNS}/${TOTRUNS}`);
 				} else { // Otherwise build a new m.c. tree
-					const { tree, grid, runs, newly } = startSim(root, this.size, INITIAL);
+					const { tree, grid, runs, newly } = startSim(this.root, this.size, INITIAL);
 					// RUNS -= runs; // TODO: disabled for the moment
-					this.log(`Ran ${runs} (${runs - newly}) simulations of ${grid} x ${grid} games`);
+					this.log(`Ran ${runs} (${runs - newly}) simulations of ${grid}x${grid} games`);
 					// console.log(show(n, tree, 1));
-					root = tree;
+					this.root = tree;
 
 					// idled = 1; // TODO: disabled for the moment
 					// thread = setInterval(() => worker(), INTERVAL * 1000); // TODO: disabled for the moment
 				}
 
 				if (this.first) {
-					compPlayer(root); // if the AI should move first
+					this.compPlayer(this.root); // if the AI should move first
 				}
-				dialogHide();
+				this.dialogHide();
 			}, 1);
 		} else {
-			dialogHide();
+			this.dialogHide();
+		}
+	}
+
+	// make a move and update the HTML
+	makeMove(row, col) {
+		this.game.makeMove(row, col);
+
+		const eid = `tictactoe-${row}-${col}`;
+		if (this.game.player > 0) {
+			document.getElementById(eid).textContent = 'O';
+		} else {
+			document.getElementById(eid).textContent = 'X';
+		}
+		document.getElementById(eid).setAttribute("style", "color:#424242"); // Make the color of 'O' or 'X' solid as visual clue
+	}
+
+	// check game status and update the HTML
+	evaluate(row, col) {
+		const conclusion = this.game.evaluate(row, col);
+		if (conclusion < 0) {
+			this.dialogShow(' "X" won', true);
+			return true;
+		} else if (conclusion > 0) {
+			this.dialogShow(' "O" won', true);
+			return true;
+		}
+
+		if (!this.game.nextTurn()) {
+			this.dialogShow(' Draw', true);
+			return true;
+		}
+		return false;
+	}
+
+	// AI player's turn
+	compPlayer(leaf) {
+		if (this.game.player !== 0) {
+			const n = this.game.grid();
+
+			if (leaf.next.filter(t => t !== undefined).length < leaf.next.length) {
+				// Unexplored and/or not fully explored node found
+				// NOTE: Since no node under leaf, should add a node under leaf (by chooseMove()), afterward then can do sim()
+				// NOTE: What about if leaf is partially explored? should expand instead of UCB?
+				const move = chooseMove(this.game, leaf);
+				this.makeMove(move.r, move.c);
+				const { index } = leaf.add(n, move.r, move.c, move.m);
+				this.game.steps.push(index);
+				const { grid, runs, newly } = contSim(this.root, this.game, SUBSQNT);
+				if (this.evaluate(move.r, move.c)) return;
+				this.log(`Adding ${runs} (${runs - newly}) simulations of ${grid}x${grid} games`);
+			} else {
+				// Find a fully explored node, normal operation
+				const indexNext = leaf.ucb();
+				this.makeMove(leaf.next[indexNext].row(n), leaf.next[indexNext].col(n));
+				this.game.steps.push(indexNext);
+				if (this.evaluate(leaf.next[indexNext].row(n), leaf.next[indexNext].col(n))) return;
+				this.log(`[comp] select: ${leaf.next[indexNext].show(n)}`);
+			}
 		}
 	}
 }

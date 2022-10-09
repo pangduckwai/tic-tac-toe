@@ -101,7 +101,7 @@ function sim(root, game, run) {
 // Start simulations for new games
 function startSim(root, grid, runs) {
 	if (!root) {
-		console.log(`Initializing a new tree of ${grid} x ${grid} games`);
+		// console.log(`Initializing a new tree of ${grid} x ${grid} games`);
 		root = Node.root(grid);
 	}
 	if (root.player !== 0) throw new Error('Root node required');
