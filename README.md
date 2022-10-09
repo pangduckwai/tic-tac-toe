@@ -35,7 +35,7 @@ Follow the example provided with `sample.css`, `sample.js` and `sample.html`
 > </html>
 > ```
 
-> Initial the TicTacToe object in `sample.js`:
+> Initial the TicTacToe object in the sample `js` file:
 > ``` javascript
 > new TicTacToe('game-board-id', (msg) => console.log(msg));
 > ```
