@@ -6,7 +6,7 @@ window.onload = () => {
 	document.getElementById('ai1st').checked = false; // default to human first
 	document.getElementById('ai1st').disabled = false; // default to human first
 
-  let ttt = new TicTacToe('board');
+  let ttt = new TicTacToe('board', (msg) => console.log(msg));
 
 	document.getElementById('bsize').onchange = () => ttt.setBoardSize(document.getElementById('bsize').value);
 

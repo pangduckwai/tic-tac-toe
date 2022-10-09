@@ -11,7 +11,7 @@ let moves = [];
 // const INTERVAL = 1; // 1 second timer interval
 // const IDLE = 2; // 2 seconds
 const INITIAL = 1000000; // initial simulation runs
-const SUBSQNT = 50000; // subsequent simulation runs
+const SUBSQNT = 100000; // subsequent simulation runs
 // const TOTRUNS = 1000000; // Total number of runs
 // let RUNS = TOTRUNS; // total simulation runs
 // let idled;
@@ -178,8 +178,12 @@ function dialogHide() {
 
 class TicTacToe {
 	/**
+	 * @typedef {(msg:string) => void} Logger
+	 */
+	/**
 	 * Initialize the TicTacToe object
 	 * @param {string} elm element ID to attach the game board
+	 * @param {Logger} logger logger callback
 	 * @param {number} size board size, default is 3
 	 * @param {number} player number of players, default is 1
 	 * @param {boolean} human human player move first
@@ -189,6 +193,7 @@ class TicTacToe {
 	 */
 	constructor(
 		elm,
+		logger,
 		size, player, human,
 		font, cell, gap,
 	) {
@@ -196,6 +201,8 @@ class TicTacToe {
 		this.canvas = document.getElementById(elm);
 		if (this.canvas === null) throw `Element '${elm}' not found`;
 		this.canvas.innerHTML = '';
+
+		this.setLogger(logger);
 
 		this.setBoardSize((size === undefined) ? 3 : size);
 		this.setPlayerNum((player === undefined) ? 1 : player);
@@ -224,6 +231,31 @@ class TicTacToe {
 		document.getElementById('tictactoe-new').onclick = () => this.newGame();
 
 		dialogShow('Click to start', true);
+	}
+
+	setLogger(logger) {
+		if (logger === undefined) return;
+		if (typeof logger === 'function' && logger.length === 1) {
+			this.logger = logger;
+		}
+	}
+
+	log(msg) {
+		if (this.logger === undefined) return;
+		let now = new Date();
+		this.logger(`${now.getFullYear()}-${(('0'+(now.getMonth()+1)).slice(-2))}-${('0'+now.getDate()).slice(-2)}_${('0'+now.getHours()).slice(-2)}:${('0'+now.getMinutes()).slice(-2)}:${('0'+now.getSeconds()).slice(-2)} ${msg}`);
+	}
+
+	setFontSize(n) {
+		this.font = n;
+	}
+
+	setCellSize(n) {
+		this.cell = n;
+	}
+
+	setGapSize(n) {
+		this.gap = n;
 	}
 
 	setBoardSize(n) {
@@ -287,6 +319,7 @@ class TicTacToe {
 
 	newGame() {
 		dialogShow('Loading...', false);
+		this.log(`Starting a ${this.size} x ${this.size} new game with ${this.ai ? 1 : 2} player${this.ai ? '' : 's'}${this.ai ? ` (${this.first ? 'Computer' : 'Player'} move first)` : ''}`);
 		this.buildBoard(true);
 
 		// Initialize the Game Status object
@@ -312,7 +345,7 @@ class TicTacToe {
 				} else { // Otherwise build a new m.c. tree
 					const { tree, grid, runs, newly } = startSim(root, this.size, INITIAL);
 					// RUNS -= runs; // TODO: disabled for the moment
-					console.log(`Ran ${runs} (${runs - newly}) simulations of ${grid} x ${grid} games`);
+					this.log(`Ran ${runs} (${runs - newly}) simulations of ${grid} x ${grid} games`);
 					// console.log(show(n, tree, 1));
 					root = tree;
 
