@@ -18,6 +18,8 @@ Since it is meant to be self-contain, everything you need is in this repository.
 Follow the example provided with `sample.css`, `sample.js` and `sample.html`
 
 > Imports the `css` and `js` files, as well as provides a `<div>` tag to contain the game board, in the `html` file:
+> - `tictactoe.css` light theme
+> - `tictactoe-dark.css` dark theme
 > ``` html
 > <html lang="en">
 > <head>

@@ -80,6 +80,7 @@ class TicTacToe {
 		dialog.innerHTML = '<div class="tictactoe-dialog-content"><div id="tictactoe-msg">&nbsp;</div><button id="tictactoe-new">New game</button></div>';
 
 		let element = document.createElement('div');
+		element.setAttribute('class', 'tictactoe-main');
 		element.setAttribute('style', `position:relative;width:${(this.cell+this.gap)*this.size+10}px;font-size:${this.font}px;`);
 		element.appendChild(dialog);
 		element.appendChild(this.board);
@@ -188,7 +189,6 @@ class TicTacToe {
 						} else {
 							document.getElementById(eid).textContent = 'X';
 						}
-						document.getElementById(eid).setAttribute("style", "color:#a0a0a0");
 					}
 				};
 
@@ -196,7 +196,6 @@ class TicTacToe {
 					const eid = `tictactoe-${row}-${col}`;
 					if (this.game.cells[row][col] === 0) {
 						document.getElementById(eid).textContent = ' ';
-						document.getElementById(eid).setAttribute("style", "color:#424242");
 					}
 				};
 
@@ -300,7 +299,7 @@ class TicTacToe {
 		} else {
 			document.getElementById(eid).textContent = 'X';
 		}
-		document.getElementById(eid).setAttribute("style", "color:#424242"); // Make the color of 'O' or 'X' solid as visual clue
+		document.getElementById(eid).setAttribute("class", "tictactoe-cell tictactoe-cell-clicked"); // Make the color of 'O' or 'X' solid as visual clue
 	}
 
 	// check game status and update the HTML
